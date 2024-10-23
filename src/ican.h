@@ -132,7 +132,7 @@ struct Layer {
 	Iray1D *params;
 	Iray2D *weight;
 	void (*forward)(Layer *layer);
-	void (*backward)(Layer *layer);
+	void (*backward)(Layer *layer, float *delta, float rate);
 };
 
 typedef enum {

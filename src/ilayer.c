@@ -4,7 +4,7 @@
 
 #include "ican.h"
 
-Layer *layer_alloc(LayerNames name, size_t inputSize, size_t outputSize, size_t paramsSize, void (*forward)(Layer *layer), void (*backward)(Layer *layer)) {
+Layer *layer_alloc(LayerNames name, size_t inputSize, size_t outputSize, size_t paramsSize, void (*forward)(Layer *layer), void (*backward)(Layer *layer, float *delta, float rate)) {
 	Layer *layer = malloc(sizeof(Layer));
     layer->name = name;
     layer->inputSize = inputSize;
@@ -44,6 +44,20 @@ void layer_dense_forward(Layer *layer) {
     }
 }
 
+void layer_dense_backward(Layer *layer, float *delta, float rate) {
+    for (size_t j = 0; j < layer->inputSize; j++) {
+        for (size_t k = 0; k < layer->outputSize; k++) {
+            float dw = rate * delta[k] * layer->input->data[j];
+            layer->weight->data[j][k] += dw;
+        }
+    }
+
+    for (size_t j = 0; j < layer->outputSize; j++) {
+        float db = delta[j] * rate;
+        layer->bias->data[j] += db;
+    }
+}
+
 void layer_rnn_forward(Layer *layer) {
     for (size_t j = 0; j < layer->outputSize; j++) {
         layer->output->data[j] = 0;
@@ -54,6 +68,20 @@ void layer_rnn_forward(Layer *layer) {
         layer->output->data[j] += layer->bias->data[j];
         layer->output->data[j] = tanhf(layer->output->data[j]);
         layer->params->data[j] = layer->output->data[j];
+    }
+}
+
+void layer_rnn_backward(Layer *layer, float *delta, float rate) {
+    for (size_t j = 0; j < layer->inputSize; j++) {
+        for (size_t k = 0; k < layer->outputSize; k++) {
+            float dw = rate * delta[k] * layer->input->data[j];
+            layer->weight->data[j][k] += dw;
+        }
+    }
+
+    for (size_t j = 0; j < layer->outputSize; j++) {
+        float db = delta[j] * rate;
+        layer->bias->data[j] += db;
     }
 }
 
@@ -103,6 +131,25 @@ void layer_gru_forward(Layer *layer) {
     iray1d_free(bias_reset);
 }
 
+void layer_gru_backward(Layer *layer, float *delta, float rate) {
+    for (size_t j = 0; j < layer->inputSize; j++) {
+        for (size_t k = 0; k < layer->outputSize; k++) {
+            float dw = rate * delta[k] * layer->input->data[j];
+            layer->weight->data[j][k] += dw;
+            layer->weight->data[layer->inputSize][k] += dw;
+            layer->weight->data[layer->inputSize + 1][k] += dw;
+            layer->weight->data[layer->inputSize + 2][k] += dw;
+        }
+    }
+
+    for (size_t j = 0; j < layer->outputSize; j++) {
+        float db = delta[j] * rate;
+        layer->bias->data[j] += db;
+        layer->bias->data[layer->outputSize + j] += db;
+        layer->bias->data[layer->outputSize*2 + j] += db;
+    }
+}
+
 void layer_activation_sigmoid_forward(Layer *layer) {
     for (size_t i = 0; i < layer->outputSize; i++)
     {
@@ -134,19 +181,25 @@ void layer_activation_softmax_forward(Layer *layer) {
     }
     
 }
-void layer_activation_sigmoid_backward(Layer *layer) {
+void layer_activation_sigmoid_backward(Layer *layer, float *delta, float rate) {
+    (void)delta;
+    (void)rate;
     for (size_t i = 0; i < layer->outputSize; i++)
     {
         layer->input->data[i] = dsigmoid(layer->output->data[i]);
     }
 }
-void layer_activation_tanh_backward(Layer *layer) {
+void layer_activation_tanh_backward(Layer *layer, float *delta, float rate) {
+    (void)delta;
+    (void)rate;
     for (size_t i = 0; i < layer->outputSize; i++)
     {
         layer->input->data[i] = dtanh(layer->output->data[i]);
     }
 }
-void layer_activation_softmax_backward(Layer *layer) {
+void layer_activation_softmax_backward(Layer *layer, float *delta, float rate) {
+    (void)delta;
+    (void)rate;
     for (size_t i = 0; i < layer->inputSize; i++) {
         float softmax_i = layer->output->data[i];
         for (size_t j = 0; j < layer->outputSize; j++) {
@@ -171,6 +224,14 @@ void layer_dropout_forward(Layer *layer) {
     }
 }
 
+void layer_dropout_backward(Layer *layer, float *delta, float rate) {
+    (void)delta;
+    (void)rate;
+    for (size_t i = 0; i < layer->inputSize; i++) {
+        layer->input->data[i] = layer->output->data[i];
+    }
+}
+
 void layer_shuffle_forward(Layer *layer) {
     Iray1D *used_indices_e = iray1d_alloc(layer->outputSize);
     int source_index;
@@ -188,19 +249,27 @@ void layer_shuffle_forward(Layer *layer) {
     iray1d_free(used_indices);
 }
 
+void layer_shuffle_backward(Layer *layer, float *delta, float rate) {
+    (void)delta;
+    (void)rate;
+    for (size_t i = 0; i < layer->inputSize; i++) {
+        layer->input->data[i] = layer->output->data[i];
+    }
+}
+
 Layer *layer_dense(size_t inputSize, size_t outputSize) {
-    return layer_alloc(Dense, inputSize, outputSize, 0, layer_dense_forward, NULL);
+    return layer_alloc(Dense, inputSize, outputSize, 0, layer_dense_forward, layer_dense_backward);
 }
 
 Layer *layer_rnn(size_t inputSize, size_t outputSize) {
-    Layer *layer = layer_alloc(Dense, inputSize, outputSize, outputSize, layer_rnn_forward, NULL);
+    Layer *layer = layer_alloc(Dense, inputSize, outputSize, outputSize, layer_rnn_forward, layer_rnn_backward);
     iray2d_free(layer->weight);
     layer->weight = iray2d_alloc(inputSize + 1, outputSize);
     return layer;
 }
 
 Layer *layer_gru(size_t inputSize, size_t outputSize) {
-    Layer *layer = layer_alloc(Dense, inputSize, outputSize, outputSize, layer_gru_forward, NULL);
+    Layer *layer = layer_alloc(Dense, inputSize, outputSize, outputSize, layer_gru_forward, layer_gru_backward);
     iray1d_free(layer->bias);
     iray2d_free(layer->weight);
     layer->bias = iray1d_alloc(outputSize * 3);
@@ -231,7 +300,7 @@ Layer *layer_activation(ActivationTypes activation) {
 Layer *layer_dropout(float rate) {
     ISERT_MSG(1 > rate, "Rate should be less then 1");
     ISERT_MSG(rate > 0, "Rate should be more then 0");
-    Layer *layer = layer_alloc(Dropout, 0, 0, 1, layer_dropout_forward, NULL);
+    Layer *layer = layer_alloc(Dropout, 0, 0, 1, layer_dropout_forward, layer_dropout_backward);
     layer->params->data[0] = rate;
     return layer;
 }
@@ -239,7 +308,7 @@ Layer *layer_dropout(float rate) {
 Layer *layer_shuffle(float rate) {
     ISERT_MSG(1 > rate, "Rate should be less then 1");
     ISERT_MSG(rate > 0, "Rate should be more then 0");
-    Layer *layer = layer_alloc(Shuffle, 0, 0, 1, layer_shuffle_forward, NULL);
+    Layer *layer = layer_alloc(Shuffle, 0, 0, 1, layer_shuffle_forward, layer_shuffle_backward);
     layer->params->data[0] = rate;
     return layer;
 }

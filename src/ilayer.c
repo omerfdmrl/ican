@@ -57,6 +57,52 @@ void layer_rnn_forward(Layer *layer) {
     }
 }
 
+void layer_gru_forward(Layer *layer) {
+    Iray1D *input = layer->input;
+    Iray1D *params = layer->params;
+    Iray1D *output = layer->output;
+    Iray2D *weight = layer->weight;
+
+    Iray1D *bias_reset = iray1d_slice(layer->bias, 0, layer->outputSize);
+    Iray1D *bias_update = iray1d_slice(layer->bias, layer->outputSize, layer->outputSize * 2);
+    Iray1D *bias_hidden = iray1d_slice(layer->bias, layer->outputSize * 2, layer->outputSize * 3);
+
+    size_t inputSize = layer->inputSize;
+    size_t outputSize = layer->outputSize;
+
+    for (size_t j = 0; j < outputSize; j++) {
+        output->data[j] = 0;
+        float reset_gate = 0;
+        float update_gate = 0;
+
+        for (size_t i = 0; i < inputSize; i++) {
+            reset_gate += input->data[i] * weight->data[i][j];
+            update_gate += input->data[i] * weight->data[inputSize][j];
+        }
+
+        reset_gate += bias_reset->data[j];
+        update_gate += bias_update->data[j];
+
+        reset_gate = sigmoid(reset_gate);
+        update_gate = sigmoid(update_gate);
+
+        float hidden_value = 0;
+        for (size_t i = 0; i < inputSize; i++) {
+            hidden_value += input->data[i] * weight->data[inputSize + 1][j];
+        }
+
+        hidden_value += reset_gate * params->data[j] * weight->data[inputSize + 2][j];
+        hidden_value += bias_hidden->data[j];
+        hidden_value = tanh(hidden_value);
+
+        output->data[j] = (1 - update_gate) * params->data[j] + update_gate * hidden_value;
+        params->data[j] = output->data[j];
+    }
+    iray1d_free(bias_hidden);
+    iray1d_free(bias_update);
+    iray1d_free(bias_reset);
+}
+
 void layer_activation_sigmoid_forward(Layer *layer) {
     for (size_t i = 0; i < layer->outputSize; i++)
     {
@@ -150,6 +196,15 @@ Layer *layer_rnn(size_t inputSize, size_t outputSize) {
     Layer *layer = layer_alloc(Dense, inputSize, outputSize, outputSize, layer_rnn_forward, NULL);
     iray2d_free(layer->weight);
     layer->weight = iray2d_alloc(inputSize + 1, outputSize);
+    return layer;
+}
+
+Layer *layer_gru(size_t inputSize, size_t outputSize) {
+    Layer *layer = layer_alloc(Dense, inputSize, outputSize, outputSize, layer_gru_forward, NULL);
+    iray1d_free(layer->bias);
+    iray2d_free(layer->weight);
+    layer->bias = iray1d_alloc(outputSize * 3);
+    layer->weight = iray2d_alloc(inputSize + 3, outputSize);
     return layer;
 }
 

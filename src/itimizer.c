@@ -76,7 +76,7 @@ void itimizer_batch_gradient_descent(Model *model, Iray2D *inputs, Iray2D *outpu
             if (layer->name == RNN) {
                 if (first) {
                     for (size_t j = 0; j < layer->outputSize; j++) {
-                        delta[l][j] = (output[j] - parsed[j]) * layer->output->data[j];
+                        delta[l][j] = (output[j] - parsed[j]) * dtanh(layer->output->data[j]);
                     }
                     first = false;
                 } else {
@@ -104,12 +104,21 @@ void itimizer_batch_gradient_descent(Model *model, Iray2D *inputs, Iray2D *outpu
                     for (size_t k = 0; k < layer->outputSize; k++) {
                         float dw = rate * delta[l][k] * layer->input->data[j];
                         layer->weight->data[j][k] += dw;
+                        if (layer->name == GRU) {
+                            layer->weight->data[layer->inputSize][k] += dw;
+                            layer->weight->data[layer->inputSize + 1][k] += dw;
+                            layer->weight->data[layer->inputSize + 2][k] += dw;
+                        }
                     }
                 }
 
                 for (size_t j = 0; j < layer->outputSize; j++) {
                     float db = delta[l][j] * rate;
                     layer->bias->data[j] += db;
+                    if (layer->name == GRU) {
+                        layer->bias->data[layer->outputSize + j] += db;
+                        layer->bias->data[layer->outputSize*2 + j] += db;
+                    }
                 }
             } else {
                 if (first) {

@@ -187,6 +187,7 @@ Iray1D *iray1d_clone(Iray1D *iray);
 void iray1d_print(Iray1D *iray);
 Iray2D *iray2d_transpose(Iray2D *iray);
 Iray2D *iray2d_dot(Iray2D *A, Iray2D *B);
+Iray2D *iray2d_slice(Iray2D *iray, size_t start, size_t end);
 Iray2D *iray2d_add(Iray2D *A, Iray2D *B);
 Iray2D *iray2d_apply(Iray2D *iray, float(*fn)(float value));
 Iray2D *iray2d_fill(Iray2D *iray, float value);

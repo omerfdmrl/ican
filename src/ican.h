@@ -108,6 +108,7 @@ typedef enum {
 	Activation,
 	Dropout,
 	Shuffle,
+    BatchNormalization
 } LayerNames;
 
 static const char* LayerNamesChar[] = {
@@ -117,6 +118,7 @@ static const char* LayerNamesChar[] = {
 	[Activation] = "Activation",
 	[Dropout] = "Dropout",
 	[Shuffle] = "Shuffle",
+    [BatchNormalization] = "BatchNormalization"
 };
 #define LAYER_NAME(name) LayerNamesChar[(name)]
 
@@ -248,6 +250,7 @@ Layer *layer_gru(size_t inputSize, size_t outputSize);
 Layer *layer_activation(ActivationTypes activation);
 Layer *layer_dropout(float rate);
 Layer *layer_shuffle(float rate);
+Layer *layer_batch_normalization(size_t inputSize);
 
 void initializer_ones(Model *model);
 void initializer_random_heuniform(Model *model);

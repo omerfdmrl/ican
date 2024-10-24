@@ -257,6 +257,55 @@ void layer_shuffle_backward(Layer *layer, float *delta, float rate) {
     }
 }
 
+void layer_batch_normalization_forward(Layer *layer) {
+    float mean = 0.0f;
+    float variance = 0.0f;
+
+    for (size_t i = 0; i < layer->inputSize; i++) {
+        mean += layer->input->data[i];
+    }
+    mean /= layer->inputSize;
+
+    for (size_t i = 0; i < layer->inputSize; i++) {
+        variance += (layer->input->data[i] - mean) * (layer->input->data[i] - mean);
+    }
+    variance /= layer->inputSize;
+
+    float epsilon = 1e-5;
+    for (size_t i = 0; i < layer->inputSize; i++) {
+        float normalized = (layer->input->data[i] - mean) / sqrt(variance + epsilon);
+        layer->output->data[i] = normalized * layer->params->data[i] + layer->params->data[layer->inputSize + i];
+    }
+}
+
+void layer_batch_normalization_backward(Layer *layer, float *delta, float rate) {
+    Iray1D *input = layer->input;
+    Iray1D *output = layer->output;
+    Iray1D *gamma = iray1d_slice(layer->params, 0, layer->inputSize);
+    Iray1D *beta = iray1d_slice(layer->params, layer->inputSize, layer->inputSize * 2);
+    size_t outputSize = layer->outputSize;
+
+    for (size_t j = 0; j < outputSize; j++) {
+        float db = delta[j];
+        beta->data[j] += rate * db;
+
+        float dgamma = delta[j] * output->data[j];
+        gamma->data[j] += rate * dgamma;
+    }
+
+    for (size_t i = 0; i < input->rows; i++) {
+        float dinput = 0;
+
+        for (size_t j = 0; j < outputSize; j++) {
+            dinput += delta[j] * gamma->data[j] / outputSize;
+        }
+
+        input->data[i] += rate * dinput;
+    }
+
+    free(beta);
+}
+
 Layer *layer_dense(size_t inputSize, size_t outputSize) {
     return layer_alloc(Dense, inputSize, outputSize, 0, layer_dense_forward, layer_dense_backward);
 }
@@ -310,6 +359,16 @@ Layer *layer_shuffle(float rate) {
     ISERT_MSG(rate > 0, "Rate should be more then 0");
     Layer *layer = layer_alloc(Shuffle, 0, 0, 1, layer_shuffle_forward, layer_shuffle_backward);
     layer->params->data[0] = rate;
+    return layer;
+}
+
+Layer *layer_batch_normalization(size_t inputSize) {
+    Layer *layer = layer_alloc(BatchNormalization, inputSize, inputSize, inputSize * 2, layer_batch_normalization_forward, layer_batch_normalization_backward);
+    for (size_t i = 0; i < inputSize; i++) {
+        layer->params->data[i] = 1.0f;
+        layer->params->data[inputSize + i] = 0.0f;
+    }
+    
     return layer;
 }
 

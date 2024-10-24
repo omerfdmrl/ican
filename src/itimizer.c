@@ -30,12 +30,12 @@ void itimizer_finite_diff(Model *model, Iray2D *inputs, Iray2D *outputs, va_list
                     g = (model_cost(model, input, output) - c) / eps;
                     saved = model->layers[l]->weight->data[j][k];
                     model->layers[l]->weight->data[j][k] += eps;
-                    g = (model_cost(model, input, output) - c) / eps;
                     model->layers[l]->weight->data[j][k] = saved;
                     model->layers[l]->weight->data[j][k] -= rate * g;
 
                     saved = model->layers[l]->bias->data[k];
                     model->layers[l]->bias->data[k] += eps;
+                    g = (model_cost(model, input, output) - c) / eps;
                     model->layers[l]->bias->data[k] = saved;
                     model->layers[l]->bias->data[k] -= rate * g;
                 }
@@ -66,7 +66,10 @@ void itimizer_batch_gradient_descent(Model *model, Iray2D *inputs, Iray2D *outpu
         for (int l = model->layer_count - 1; l >= 0; l--) {
             Layer *layer = model->layers[l];
             delta[l] = (float *)malloc(layer->outputSize * sizeof(float));
-
+            if(layer->weight->rows == 0){
+                layer->backward(layer, delta[l], rate);
+                continue;
+            }
             if (first) {
                 for (size_t j = 0; j < layer->output->rows; j++) {
                     delta[l][j] = (output[j] - parsed[j]) * layer->output->data[j];
@@ -75,14 +78,11 @@ void itimizer_batch_gradient_descent(Model *model, Iray2D *inputs, Iray2D *outpu
             } else {
                 Layer *prevLayer = NULL;
                 float *prevDelta = NULL;
-                for (int ll = l + 1; ll < model->layer_count - 1; ll++) {
-                    if (model->layers[ll]->name != Activation) {
-                        prevLayer = model->layers[ll];
-                        prevDelta = delta[ll];
-                        break;
-                    }
+                if (l < model->layer_count - 1) {
+                    prevLayer = model->layers[l + 1];
+                    prevDelta = delta[l + 1];
+                    break;
                 }
-
                 for (size_t j = 0; j < layer->outputSize; j++) {
                     delta[l][j] = 0.0;
                     for (size_t k = 0; k < prevLayer->outputSize; k++) {

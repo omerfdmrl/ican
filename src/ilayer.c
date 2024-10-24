@@ -95,32 +95,51 @@ void layer_gru_forward(Layer *layer) {
     Iray1D *bias_update = iray1d_slice(layer->bias, layer->outputSize, layer->outputSize * 2);
     Iray1D *bias_hidden = iray1d_slice(layer->bias, layer->outputSize * 2, layer->outputSize * 3);
 
+    Iray2D *weight_reset = iray2d_slice(layer->weight, 0, layer->inputSize);
+    Iray2D *weight_update = iray2d_slice(layer->weight, layer->inputSize, layer->inputSize * 2);
+    Iray2D *weight_hidden = iray2d_slice(layer->weight, layer->inputSize * 2, layer->inputSize * 3);
+
+    Iray2D *_weight_reset_hidden = iray2d_slice(layer->weight, layer->inputSize * 3, layer->inputSize * 3 + 1);
+    Iray2D *_weight_update_hidden = iray2d_slice(layer->weight, layer->inputSize * 3 + 1, layer->inputSize * 3 + 2);
+    Iray2D *_weight_hidden_hidden = iray2d_slice(layer->weight, layer->inputSize * 3 + 2, layer->inputSize * 3 + 3);
+
+    Iray1D *weight_reset_hidden = iray1d_alloc(layer->outputSize);
+    Iray1D *weight_update_hidden = iray1d_alloc(layer->outputSize);
+    Iray1D *weight_hidden_hidden = iray1d_alloc(layer->outputSize);
+
+    for (size_t i = 0; i < layer->outputSize; i++) {
+        weight_reset_hidden->data[i] = _weight_reset_hidden->data[0][i];
+        weight_update_hidden->data[i] = _weight_update_hidden->data[0][i];
+        weight_hidden_hidden->data[i] = _weight_hidden_hidden->data[0][i];
+    }
+    iray2d_free(_weight_reset_hidden);
+    iray2d_free(_weight_update_hidden);
+    iray2d_free(_weight_hidden_hidden);
+
     size_t inputSize = layer->inputSize;
     size_t outputSize = layer->outputSize;
 
     for (size_t j = 0; j < outputSize; j++) {
-        output->data[j] = 0;
-        float reset_gate = 0;
-        float update_gate = 0;
+        float reset_gate = 0, update_gate = 0, hidden_value = 0;
 
         for (size_t i = 0; i < inputSize; i++) {
-            reset_gate += input->data[i] * weight->data[i][j];
-            update_gate += input->data[i] * weight->data[inputSize][j];
+            reset_gate += input->data[i] * weight_reset->data[i][j];  // input * W_r
+            update_gate += input->data[i] * weight_update->data[i][j];  // input * W_z
         }
 
-        reset_gate += bias_reset->data[j];
-        update_gate += bias_update->data[j];
+        reset_gate += params->data[j] * weight_reset_hidden->data[j];  // hidden * U_r
+        update_gate += params->data[j] * weight_update_hidden->data[j];  // hidden * U_z
+        reset_gate += layer->bias->data[j];
+        update_gate += layer->bias->data[outputSize + j];
 
         reset_gate = sigmoid(reset_gate);
         update_gate = sigmoid(update_gate);
 
-        float hidden_value = 0;
         for (size_t i = 0; i < inputSize; i++) {
-            hidden_value += input->data[i] * weight->data[inputSize + 1][j];
+            hidden_value += input->data[i] * weight_hidden->data[i][j];  // input * W_h
         }
-
-        hidden_value += reset_gate * params->data[j] * weight->data[inputSize + 2][j];
-        hidden_value += bias_hidden->data[j];
+        hidden_value += reset_gate * params->data[j] * weight_hidden_hidden->data[j];  // reset * hidden * U_h
+        hidden_value += layer->bias->data[outputSize * 2 + j];
         hidden_value = tanh(hidden_value);
 
         output->data[j] = (1 - update_gate) * params->data[j] + update_gate * hidden_value;
@@ -129,24 +148,25 @@ void layer_gru_forward(Layer *layer) {
     iray1d_free(bias_hidden);
     iray1d_free(bias_update);
     iray1d_free(bias_reset);
+
+    iray1d_free(weight_reset_hidden);
+    iray1d_free(weight_update_hidden);
+    iray1d_free(weight_hidden_hidden);
 }
 
 void layer_gru_backward(Layer *layer, float *delta, float rate) {
     for (size_t j = 0; j < layer->inputSize; j++) {
         for (size_t k = 0; k < layer->outputSize; k++) {
-            float dw = rate * delta[k] * layer->input->data[j];
-            layer->weight->data[j][k] += dw;
-            layer->weight->data[layer->inputSize][k] += dw;
-            layer->weight->data[layer->inputSize + 1][k] += dw;
-            layer->weight->data[layer->inputSize + 2][k] += dw;
+            layer->weight->data[j][k] += rate * delta[k] * layer->input->data[j];  // update W_r
+            layer->weight->data[layer->inputSize + j][k] += rate * delta[k] * layer->input->data[j];  // update W_z
+            layer->weight->data[layer->inputSize * 2 + j][k] += rate * delta[k] * layer->input->data[j];  // update W_h
         }
     }
 
     for (size_t j = 0; j < layer->outputSize; j++) {
-        float db = delta[j] * rate;
-        layer->bias->data[j] += db;
-        layer->bias->data[layer->outputSize + j] += db;
-        layer->bias->data[layer->outputSize*2 + j] += db;
+        layer->bias->data[j] += rate * delta[j];  // update bias for reset
+        layer->bias->data[layer->outputSize + j] += rate * delta[j];  // update bias for update
+        layer->bias->data[layer->outputSize * 2 + j] += rate * delta[j];  // update bias for hidden
     }
 }
 
@@ -322,7 +342,7 @@ Layer *layer_gru(size_t inputSize, size_t outputSize) {
     iray1d_free(layer->bias);
     iray2d_free(layer->weight);
     layer->bias = iray1d_alloc(outputSize * 3);
-    layer->weight = iray2d_alloc(inputSize + 3, outputSize);
+    layer->weight = iray2d_alloc(inputSize * 3 + 3, outputSize);
     return layer;
 }
 

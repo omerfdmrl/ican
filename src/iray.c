@@ -169,6 +169,17 @@ Iray2D *iray2d_dot(Iray2D *A, Iray2D *B) {
     return dotProduct;
 }
 
+Iray2D *iray2d_slice(Iray2D *iray, size_t start, size_t end) {
+    size_t new_size = end - start;
+    Iray2D *result = iray2d_alloc(new_size, iray->cols);
+    for (size_t i = start, j = 0; i < end; i++, j++) {
+        for (size_t k = 0; k < iray->cols; k++) {
+            result->data[j][k] = iray->data[i][k];
+        }
+    }
+    return result;
+}
+
 Iray2D *iray2d_add(Iray2D *A, Iray2D *B) {
     ISERT(A->rows == B->rows);
     ISERT(A->cols == B->cols);

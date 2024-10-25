@@ -331,14 +331,14 @@ Layer *layer_dense(size_t inputSize, size_t outputSize) {
 }
 
 Layer *layer_rnn(size_t inputSize, size_t outputSize) {
-    Layer *layer = layer_alloc(Dense, inputSize, outputSize, outputSize, layer_rnn_forward, layer_rnn_backward);
+    Layer *layer = layer_alloc(RNN, inputSize, outputSize, outputSize, layer_rnn_forward, layer_rnn_backward);
     iray2d_free(layer->weight);
     layer->weight = iray2d_alloc(inputSize + 1, outputSize);
     return layer;
 }
 
 Layer *layer_gru(size_t inputSize, size_t outputSize) {
-    Layer *layer = layer_alloc(Dense, inputSize, outputSize, outputSize, layer_gru_forward, layer_gru_backward);
+    Layer *layer = layer_alloc(GRU, inputSize, outputSize, outputSize, layer_gru_forward, layer_gru_backward);
     iray1d_free(layer->bias);
     iray2d_free(layer->weight);
     layer->bias = iray1d_alloc(outputSize * 3);

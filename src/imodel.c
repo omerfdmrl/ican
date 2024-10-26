@@ -92,7 +92,7 @@ float model_cost(Model *model, float *input, float *output) {
 	}
 	return c / n;
 }
-void model_learn(Itimizers optimizer, Model *model, size_t epoch, Iray2D *inputs, Iray2D *outputs, ...) {
+Iray1D *model_learn(Itimizers optimizer, Model *model, size_t epoch, Iray2D *inputs, Iray2D *outputs, ...) {
 	ISERT_MSG(inputs->cols == model->layers[0]->inputSize, "Input Size should be equal to first layers");
 	ISERT_MSG(outputs->cols == model->layers[model->layer_count - 1]->outputSize, "Output Size should be equal to last layer");
 	void (*optimizerFunction)(Model *model, Iray2D *inputs, Iray2D *outputs, va_list args);
@@ -110,18 +110,22 @@ void model_learn(Itimizers optimizer, Model *model, size_t epoch, Iray2D *inputs
 			break;
 	}
 	clock_t timer = clock();
-	
+	Iray1D *loss_history = iray1d_alloc(epoch);
+	float cost;
 	for (size_t e = 0; e < epoch; e++)
 	{
-        print_progress_header(e,epoch, model_cost(model, inputs->data[0], outputs->data[0]));
+		cost = model_cost(model, inputs->data[0], outputs->data[0]);
+        print_progress_header(e,epoch, cost);
 		va_copy(cpyargs, args);
 		optimizerFunction(model, inputs, outputs, cpyargs);
 		va_end(cpyargs);
+		loss_history->data[e] = cost;
 	}
 	timer = clock() - timer;
 	print_progress_footer(timer, model_cost(model, inputs->data[0], outputs->data[0]));
 	va_end(args);
 	printf("\n");
+	return loss_history;
 }
 void model_print(Model *model) {
 	printf("%-20s%-20s%-20s\n", "Layer", "Shape", "Param");

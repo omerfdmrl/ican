@@ -269,7 +269,7 @@ void model_randomize(Initializers initializer, Model *model, ...);
 void model_forward(Model *model);
 void model_input(Model *model, float *input);
 float model_cost(Model *model, float *input, float *output);
-void model_learn(Itimizers optimizer, Model *model, size_t epoch, Iray2D *inputs, Iray2D *outputs, ...);
+Iray1D *model_learn(Itimizers optimizer, Model *model, size_t epoch, Iray2D *inputs, Iray2D *outputs, ...);
 void model_print(Model *model);
 void model_free(Model *model);
 

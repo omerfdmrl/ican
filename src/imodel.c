@@ -110,14 +110,23 @@ void model_learn(Itimizers optimizer, Model *model, size_t epoch, Iray2D *inputs
 			break;
 	}
 	clock_t timer = clock();
-	
-	for (size_t e = 0; e < epoch; e++)
+	Iray1D *loss_history = iray1d_alloc(epoch);
+	ISDLContext *context = isdl_alloc(1200, 700, true); // 500-500
+	int running = 1;
+	for (size_t e = 0; e < epoch && running; e++)
 	{
-        print_progress_header(e,epoch, model_cost(model, inputs->data[0], outputs->data[0]));
+		handle_events(&running);
+		float cost = model_cost(model, inputs->data[0], outputs->data[0]);
+        print_progress_header(e,epoch, cost);
 		va_copy(cpyargs, args);
 		optimizerFunction(model, inputs, outputs, cpyargs);
 		va_end(cpyargs);
+		loss_history->data[e] = cost;
+		draw_model(context, model, loss_history, epoch);
 	}
+	iray1d_free(loss_history);
+	isdl_free(context);
+
 	timer = clock() - timer;
 	print_progress_footer(timer, model_cost(model, inputs->data[0], outputs->data[0]));
 	va_end(args);

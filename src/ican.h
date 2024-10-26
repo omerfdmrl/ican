@@ -13,6 +13,7 @@
 #include <jpeglib.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <signal.h>
 #include <SDL2/SDL.h>
 #include <cjson/cJSON.h>
 
@@ -212,9 +213,11 @@ void img_write_png(FILE *fp, Iray3D *img);
 void img_write_jpg(FILE *fp, Iray3D *img);
 void img_write(const char *imageName, Iray3D *img);
 
-ISDLContext *isdl_alloc(int width, int height);
+ISDLContext *isdl_alloc(int width, int height, bool resizable);
 void isdl_free(ISDLContext *context);
 void img_show(ISDLContext *context, Iray3D *img);
+void handle_events(int *running);
+void draw_model(ISDLContext *context, Model *model, Iray1D *loss_history, size_t epoch);
 
 Iray3D *img_conv(Iray3D *img, float kernel[3][3], size_t stride);
 Iray3D *img_max_pool(Iray3D* img, size_t pool_size);

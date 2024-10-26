@@ -309,17 +309,17 @@ void img_write_png(FILE *fp, Iray3D *img) {
         png_bytep row = (png_bytep)malloc(png_get_rowbytes(png, info));
         for (size_t x = 0; x < img->cols; x++) {
             if (img->depth == 1) {
-                row[x * 3] = (png_byte)img->data[y][x][0];     // R
-                row[x * 3 + 1] = (png_byte)img->data[y][x][0]; // G
-                row[x * 3 + 2] = (png_byte)img->data[y][x][0]; // B
+                row[x * 3] = (png_byte)img->data[y][x][0];
+                row[x * 3 + 1] = (png_byte)img->data[y][x][0];
+                row[x * 3 + 2] = (png_byte)img->data[y][x][0];
             } else if(img->depth == 3) {
-                row[x * 3] = (png_byte)img->data[y][x][0];     // R
-                row[x * 3 + 1] = (png_byte)img->data[y][x][1]; // G
-                row[x * 3 + 2] = (png_byte)img->data[y][x][2]; // B
+                row[x * 3] = (png_byte)img->data[y][x][0];
+                row[x * 3 + 1] = (png_byte)img->data[y][x][1];
+                row[x * 3 + 2] = (png_byte)img->data[y][x][2];
             } else if(img->depth == 4) {
-                row[x * 3] = (png_byte)img->data[y][x][0];     // R
-                row[x * 3 + 1] = (png_byte)img->data[y][x][1]; // G
-                row[x * 3 + 2] = (png_byte)img->data[y][x][2]; // B
+                row[x * 3] = (png_byte)img->data[y][x][0];
+                row[x * 3 + 1] = (png_byte)img->data[y][x][1];
+                row[x * 3 + 2] = (png_byte)img->data[y][x][2];
             }
         }
         png_write_row(png, row);

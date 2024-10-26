@@ -128,7 +128,7 @@ Tokenizer *fit_on_texts(const char *text) {
         if (!found) {
             size_t word_len = strlen(token);
             tokenizer->words[tokenizer->size] = (char *)malloc((word_len + 1) * sizeof(char));
-            strcpy(tokenizer->words[tokenizer->size], token); // Kelimeyi kopyala
+            strcpy(tokenizer->words[tokenizer->size], token);
             tokenizer->size++;
         }
 
@@ -140,7 +140,7 @@ Tokenizer *fit_on_texts(const char *text) {
 
 Iray1D *texts_to_sequences(Tokenizer *tokenizer, const char *text) {
     if (tokenizer == NULL || text == NULL) {
-        return NULL;  // Geçersiz giriş kontrolü
+        return NULL;
     }
 
     char cop_data[strlen(text) + 1];
@@ -168,7 +168,7 @@ Iray1D *texts_to_sequences(Tokenizer *tokenizer, const char *text) {
     while (token != NULL) {
         for (size_t i = 0; i < tokenizer->size; i++) {
             if (strcmp(tokenizer->words[i], token) == 0) {
-                if (count < sayac) {  // Boyut kontrolü
+                if (count < sayac) {
                     temp_data[count] = (float)(i + 1);
                     count++;
                 }

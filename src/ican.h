@@ -19,17 +19,11 @@
 #define PI 3.14159265358979323846
 
 typedef enum{
-    /** If shutting down - for critical errors */
     ILOG_LEVEL_FATAL = 0,
-    /** If there is error - no shutdown required */
     ILOG_LEVEL_ERROR = 1,
-    /** For potential errors */
     ILOG_LEVEL_WARN = 2,
-    /** General information messages */
     ILOG_LEVEL_INFO = 3,
-    /** Debugging variables and functions */
     ILOG_LEVEL_DEBUG = 4,
-    /** For like 'process_data() running now - ended now' */
     ILOG_LEVEL_TRACE = 5
 } ILogLevels;
 
@@ -244,6 +238,7 @@ void print_progress_header(size_t epoch, size_t total_epochs, float cost);
 void print_progress(size_t count, size_t max, float cost);
 void print_progress_footer(time_t timer, float cost);
 Iray2D *csv_read(const char *filename, size_t rows, size_t cols);
+Iray2D *bin_read(const char *filename, size_t rows, size_t cols);
 
 void layer_free(Layer *layer);
 void layer_print(Layer *layer);

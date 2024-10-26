@@ -98,4 +98,26 @@ Iray2D *csv_read(const char *filename, size_t rows, size_t cols) {
     return data;
 }
 
+Iray2D *bin_read(const char *filename, size_t rows, size_t cols) {
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        perror("Unable to open file");
+        exit(EXIT_FAILURE);
+    }
+
+    Iray2D *data = iray2d_alloc(rows, cols);
+
+    for (size_t row = 0; row < rows; row++) {
+        size_t read_size = fread(data->data[row], sizeof(float), cols, file);
+        if (read_size != cols) {
+            fprintf(stderr, "Error reading row %zu\n", row);
+            fclose(file);
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    fclose(file);
+    return data;
+}
+
 #endif // !ITIL_H

@@ -123,12 +123,12 @@ void layer_gru_forward(Layer *layer) {
         float reset_gate = 0, update_gate = 0, hidden_value = 0;
 
         for (size_t i = 0; i < inputSize; i++) {
-            reset_gate += input->data[i] * weight_reset->data[i][j];  // input * W_r
-            update_gate += input->data[i] * weight_update->data[i][j];  // input * W_z
+            reset_gate += input->data[i] * weight_reset->data[i][j];
+            update_gate += input->data[i] * weight_update->data[i][j];
         }
 
-        reset_gate += params->data[j] * weight_reset_hidden->data[j];  // hidden * U_r
-        update_gate += params->data[j] * weight_update_hidden->data[j];  // hidden * U_z
+        reset_gate += params->data[j] * weight_reset_hidden->data[j];
+        update_gate += params->data[j] * weight_update_hidden->data[j];
         reset_gate += layer->bias->data[j];
         update_gate += layer->bias->data[outputSize + j];
 
@@ -136,9 +136,9 @@ void layer_gru_forward(Layer *layer) {
         update_gate = sigmoid(update_gate);
 
         for (size_t i = 0; i < inputSize; i++) {
-            hidden_value += input->data[i] * weight_hidden->data[i][j];  // input * W_h
+            hidden_value += input->data[i] * weight_hidden->data[i][j];
         }
-        hidden_value += reset_gate * params->data[j] * weight_hidden_hidden->data[j];  // reset * hidden * U_h
+        hidden_value += reset_gate * params->data[j] * weight_hidden_hidden->data[j];
         hidden_value += layer->bias->data[outputSize * 2 + j];
         hidden_value = tanh(hidden_value);
 
@@ -157,16 +157,16 @@ void layer_gru_forward(Layer *layer) {
 void layer_gru_backward(Layer *layer, float *delta, float rate) {
     for (size_t j = 0; j < layer->inputSize; j++) {
         for (size_t k = 0; k < layer->outputSize; k++) {
-            layer->weight->data[j][k] += rate * delta[k] * layer->input->data[j];  // update W_r
-            layer->weight->data[layer->inputSize + j][k] += rate * delta[k] * layer->input->data[j];  // update W_z
-            layer->weight->data[layer->inputSize * 2 + j][k] += rate * delta[k] * layer->input->data[j];  // update W_h
+            layer->weight->data[j][k] += rate * delta[k] * layer->input->data[j];
+            layer->weight->data[layer->inputSize + j][k] += rate * delta[k] * layer->input->data[j];
+            layer->weight->data[layer->inputSize * 2 + j][k] += rate * delta[k] * layer->input->data[j];
         }
     }
 
     for (size_t j = 0; j < layer->outputSize; j++) {
-        layer->bias->data[j] += rate * delta[j];  // update bias for reset
-        layer->bias->data[layer->outputSize + j] += rate * delta[j];  // update bias for update
-        layer->bias->data[layer->outputSize * 2 + j] += rate * delta[j];  // update bias for hidden
+        layer->bias->data[j] += rate * delta[j];
+        layer->bias->data[layer->outputSize + j] += rate * delta[j];
+        layer->bias->data[layer->outputSize * 2 + j] += rate * delta[j];
     }
 }
 

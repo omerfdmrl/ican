@@ -216,6 +216,7 @@ void img_write(const char *imageName, Iray3D *img);
 ISDLContext *isdl_alloc(int width, int height, bool resizable);
 void isdl_free(ISDLContext *context);
 void img_show(ISDLContext *context, Iray3D *img);
+void model_show(ISDLContext *context, Model *model, Iray1D *loss_history);
 
 Iray3D *img_conv(Iray3D *img, float kernel[3][3], size_t stride);
 Iray3D *img_max_pool(Iray3D* img, size_t pool_size);

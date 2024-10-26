@@ -4,13 +4,13 @@
 
 #include "ican.h"
 
-ISDLContext *isdl_alloc(int width, int height) {
+ISDLContext *isdl_alloc(int width, int height, bool resizable) {
     ISDLContext *context = malloc(sizeof(ISDLContext));
     ISERT_MSG(context != NULL, "Memory allocation for ISDLContext failed");
 
     ISERT_MSG(SDL_Init(SDL_INIT_VIDEO) == 0, "Context could not created");
 
-    context->window = SDL_CreateWindow("I See", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+    context->window = SDL_CreateWindow("I See", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, resizable ? SDL_WINDOW_RESIZABLE : SDL_WINDOW_SHOWN);
     ISERT_MSG(context->window != NULL, "Window could not created");
 
     context->renderer = SDL_CreateRenderer(context->window, -1, SDL_RENDERER_ACCELERATED);

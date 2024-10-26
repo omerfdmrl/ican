@@ -212,7 +212,7 @@ void img_write_png(FILE *fp, Iray3D *img);
 void img_write_jpg(FILE *fp, Iray3D *img);
 void img_write(const char *imageName, Iray3D *img);
 
-ISDLContext *isdl_alloc(int width, int height);
+ISDLContext *isdl_alloc(int width, int height, bool resizable);
 void isdl_free(ISDLContext *context);
 void img_show(ISDLContext *context, Iray3D *img);
 

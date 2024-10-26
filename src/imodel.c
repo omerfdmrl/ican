@@ -7,6 +7,7 @@ Model *model_alloc(size_t layerCount) {
 	Model *m = malloc(sizeof(Model));
 	m->layer_count = 0;
 	m->layers = malloc(sizeof(Layer *) * layerCount);
+	m->step = NULL;
 	return m;
 }
 
@@ -120,6 +121,7 @@ Iray1D *model_learn(Itimizers optimizer, Model *model, size_t epoch, Iray2D *inp
 		optimizerFunction(model, inputs, outputs, cpyargs);
 		va_end(cpyargs);
 		loss_history->data[e] = cost;
+		if(model->step != NULL) model->step(loss_history);
 	}
 	timer = clock() - timer;
 	print_progress_footer(timer, model_cost(model, inputs->data[0], outputs->data[0]));

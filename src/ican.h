@@ -148,6 +148,7 @@ struct Model
 {
 	size_t layer_count;
 	Layer **layers;
+	void (*step)(Iray1D *loss_history);
 };
 
 typedef enum

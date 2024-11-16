@@ -1,5 +1,5 @@
-#ifndef IMODEL_H
-#define IMODEL_H
+#ifndef MODEL_H
+#define MODEL_H
 
 #include "ican.h"
 
@@ -94,8 +94,8 @@ float model_cost(Model *model, float *input, float *output) {
 	return c / n;
 }
 Iray1D *model_learn(Itimizers optimizer, Model *model, size_t epoch, Iray2D *inputs, Iray2D *outputs, ...) {
-	ISERT_MSG(inputs->cols == model->layers[0]->inputSize, "Input Size should be equal to first layers");
-	ISERT_MSG(outputs->cols == model->layers[model->layer_count - 1]->outputSize, "Output Size should be equal to last layer");
+	ASSERT_MSG(inputs->cols == model->layers[0]->inputSize, "Input Size should be equal to first layers");
+	ASSERT_MSG(outputs->cols == model->layers[model->layer_count - 1]->outputSize, "Output Size should be equal to last layer");
 	void (*optimizerFunction)(Model *model, Iray2D *inputs, Iray2D *outputs, va_list args);
 	va_list args;
 	va_list cpyargs;
@@ -103,11 +103,11 @@ Iray1D *model_learn(Itimizers optimizer, Model *model, size_t epoch, Iray2D *inp
 	switch (optimizer)
 	{
 		case FiniteDiff:
-			optimizerFunction = itimizer_finite_diff;
+			optimizerFunction = optimizer_finite_diff;
 			break;
 
 		case BatchGradientDescent:
-			optimizerFunction = itimizer_batch_gradient_descent;
+			optimizerFunction = optimizer_batch_gradient_descent;
 			break;
 	}
 	clock_t timer = clock();
@@ -147,4 +147,4 @@ void model_free(Model *model) {
 	free(model);
 }
 
-#endif // !IMODEL_H
+#endif // !MODEL_H

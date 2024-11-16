@@ -1,6 +1,6 @@
-#ifndef ILAYER_H
+#ifndef LAYER_H
 
-#define ILAYER_H
+#define LAYER_H
 
 #include "ican.h"
 
@@ -367,16 +367,16 @@ Layer *layer_activation(ActivationTypes activation) {
 }
 
 Layer *layer_dropout(float rate) {
-    ISERT_MSG(1 > rate, "Rate should be less then 1");
-    ISERT_MSG(rate > 0, "Rate should be more then 0");
+    ASSERT_MSG(1 > rate, "Rate should be less then 1");
+    ASSERT_MSG(rate > 0, "Rate should be more then 0");
     Layer *layer = layer_alloc(Dropout, 0, 0, 1, layer_dropout_forward, layer_dropout_backward);
     layer->params->data[0] = rate;
     return layer;
 }
 
 Layer *layer_shuffle(float rate) {
-    ISERT_MSG(1 > rate, "Rate should be less then 1");
-    ISERT_MSG(rate > 0, "Rate should be more then 0");
+    ASSERT_MSG(1 > rate, "Rate should be less then 1");
+    ASSERT_MSG(rate > 0, "Rate should be more then 0");
     Layer *layer = layer_alloc(Shuffle, 0, 0, 1, layer_shuffle_forward, layer_shuffle_backward);
     layer->params->data[0] = rate;
     return layer;
@@ -392,4 +392,4 @@ Layer *layer_batch_normalization(size_t inputSize) {
     return layer;
 }
 
-#endif // ILAYER_H
+#endif // LAYER_H

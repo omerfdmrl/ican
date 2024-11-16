@@ -44,7 +44,7 @@ void initializer_random_normal(Model *model, va_list args) {
     if(stddev == 0.0) {
         stddev = 0.05;
     }
-    ISERT_MSG(mean != stddev, "Mean(first) can not be equal to Stddev(second)");
+    ASSERT_MSG(mean != stddev, "Mean(first) can not be equal to Stddev(second)");
     for (size_t i = 0; i < model->layer_count; i++)
     {
         for (size_t j = 0; j < model->layers[i]->weight->rows; j++)
@@ -70,7 +70,7 @@ void initializer_random_uniform(Model *model, va_list args) {
     if(high == 0.0) {
         high = 0.05;
     }
-    ISERT_MSG(high > low, "High variable(first) must be higher than low(second) variable.");
+    ASSERT_MSG(high > low, "High variable(first) must be higher than low(second) variable.");
     for (size_t i = 0; i < model->layer_count; i++)
     {
         for (size_t j = 0; j < model->layers[i]->weight->rows; j++)

@@ -42,9 +42,8 @@ clean:
 fclean: clean
 	@if [ -n "$(OFILES)" ]; then $(RM) $(OFILES); fi
 	@if [ -f $(TNAME) ]; then $(RM) $(TNAME); fi
-	$(RM) -r $(RPATH)$(OUTPUT)
-	$(RM) -r $(RPATH)$(TNAME)
-	$(RM) -r $(RPATH)$(NAME)
+	$(RM) -r $(RPATH)*
+	$(RM) -r $(OPATH)*
 	$(RM) -rf $(TDPATH)
 
 $(OUTPUT): $(NAME)

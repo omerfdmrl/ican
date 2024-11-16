@@ -6,11 +6,11 @@
 
 Iray1D *iray1d_alloc(size_t rows) {
     Iray1D *iray = malloc(sizeof(Iray1D));
-    ISERT_MSG(iray != NULL, "Failed to allocate memory");
+    ASSERT_MSG(iray != NULL, "Failed to allocate memory");
 
     iray->rows = rows;
     iray->data = malloc(rows * sizeof(float));
-    ISERT_MSG(iray->data != NULL, "Failed to allocate memory for data");
+    ASSERT_MSG(iray->data != NULL, "Failed to allocate memory for data");
 
     return iray;
 }
@@ -24,16 +24,16 @@ void iray1d_free(Iray1D *iray) {
 
 Iray2D *iray2d_alloc(size_t rows, size_t cols) {
     Iray2D *iray = malloc(sizeof(Iray2D));
-    ISERT_MSG(iray != NULL, "Failed to allocate memory");
+    ASSERT_MSG(iray != NULL, "Failed to allocate memory");
 
     iray->rows = rows;
     iray->cols = cols;
     iray->data = malloc(rows * sizeof(float *));
-    ISERT_MSG(iray->data != NULL, "Failed to allocate memory for data");
+    ASSERT_MSG(iray->data != NULL, "Failed to allocate memory for data");
 
     for (size_t i = 0; i < rows; i++) {
         iray->data[i] = malloc(cols * sizeof(float));
-        ISERT_MSG(iray->data != NULL, "Failed to allocate memory for data");
+        ASSERT_MSG(iray->data != NULL, "Failed to allocate memory for data");
     }
     
 
@@ -52,21 +52,21 @@ void iray2d_free(Iray2D *iray) {
 
 Iray3D *iray3d_alloc(size_t rows, size_t cols, size_t depth) {
     Iray3D *iray = malloc(sizeof(Iray3D));
-    ISERT_MSG(iray != NULL, "Failed to allocate memory");
+    ASSERT_MSG(iray != NULL, "Failed to allocate memory");
 
     iray->rows = rows;
     iray->cols = cols;
     iray->depth = depth;
     iray->data = malloc(rows * sizeof(float **));
-    ISERT_MSG(iray->data != NULL, "Failed to allocate memory for data");
+    ASSERT_MSG(iray->data != NULL, "Failed to allocate memory for data");
 
     for (size_t i = 0; i < rows; i++) {
         iray->data[i] = malloc(cols * sizeof(float *));
-        ISERT_MSG(iray->data[i] != NULL, "Failed to allocate memory for data");
+        ASSERT_MSG(iray->data[i] != NULL, "Failed to allocate memory for data");
 
         for (size_t j = 0; j < cols; j++) {
             iray->data[i][j] = malloc(depth * sizeof(float));
-            ISERT_MSG(iray->data[i][j], "Failed to allocate memory for data");
+            ASSERT_MSG(iray->data[i][j], "Failed to allocate memory for data");
         }
         
     }
@@ -87,7 +87,7 @@ void iray3d_free(Iray3D *iray) {
 }
 
 Iray1D *iray1d_add(Iray1D *A, Iray1D *B) {
-    ISERT(A->rows == B->rows);
+    ASSERT(A->rows == B->rows);
     Iray1D *output = iray1d_alloc(A->rows);
     for (size_t i = 0; i < A->rows; i++) {
         output->data[i] = A->data[i] + B->data[i];
@@ -96,7 +96,7 @@ Iray1D *iray1d_add(Iray1D *A, Iray1D *B) {
 }
 
 Iray1D *iray1d_dot(Iray1D *A, Iray1D *B) {
-    ISERT(A->rows == B->rows);
+    ASSERT(A->rows == B->rows);
     Iray1D *output = iray1d_alloc(A->rows);
     for (size_t i = 0; i < A->rows; i++) {
         output->data[i] = A->data[i] * B->data[i];
@@ -156,7 +156,7 @@ Iray2D *iray2d_transpose(Iray2D *iray) {
 }
 
 Iray2D *iray2d_dot(Iray2D *A, Iray2D *B) {
-    ISERT(A->cols == B->rows);
+    ASSERT(A->cols == B->rows);
     Iray2D *dotProduct = iray2d_alloc(A->rows, B->cols);
     for (size_t i = 0; i < A->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
@@ -181,8 +181,8 @@ Iray2D *iray2d_slice(Iray2D *iray, size_t start, size_t end) {
 }
 
 Iray2D *iray2d_add(Iray2D *A, Iray2D *B) {
-    ISERT(A->rows == B->rows);
-    ISERT(A->cols == B->cols);
+    ASSERT(A->rows == B->rows);
+    ASSERT(A->cols == B->cols);
     Iray2D *sum = iray2d_alloc(A->rows, B->cols);
     for (size_t i = 0; i < A->rows; i++) {
         for (size_t j = 0; j < A->cols; j++) {
@@ -236,9 +236,9 @@ void iray2d_print(Iray2D *iray) {
 }
 
 Iray3D *iray3d_add(Iray3D *A, Iray3D *B) {
-    ISERT(A->rows == B->rows);
-    ISERT(A->cols == B->cols);
-    ISERT(A->depth == B->depth);
+    ASSERT(A->rows == B->rows);
+    ASSERT(A->cols == B->cols);
+    ASSERT(A->depth == B->depth);
     
     Iray3D *sum = iray3d_alloc(A->rows, A->cols, A->depth);
     for (size_t i = 0; i < A->rows; i++) {

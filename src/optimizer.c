@@ -1,10 +1,10 @@
-#ifndef ITIMIZER_H
+#ifndef OPTIMIZER_H
 
-#define ITIMIZER_H
+#define OPTIMIZER_H
 
 #include "ican.h"
 
-void itimizer_finite_diff(Model *model, Iray2D *inputs, Iray2D *outputs, va_list args) {
+void optimizer_finite_diff(Model *model, Iray2D *inputs, Iray2D *outputs, va_list args) {
     float rate = va_arg(args, double);
     float eps = va_arg(args, double);
     if(rate == 0.0) {
@@ -45,7 +45,7 @@ void itimizer_finite_diff(Model *model, Iray2D *inputs, Iray2D *outputs, va_list
     }
 }
 
-void itimizer_batch_gradient_descent(Model *model, Iray2D *inputs, Iray2D *outputs, va_list args) {
+void optimizer_batch_gradient_descent(Model *model, Iray2D *inputs, Iray2D *outputs, va_list args) {
     float rate = va_arg(args, double);
     if(rate == 0.0) {
         rate = 1e-1;
@@ -110,4 +110,4 @@ void itimizer_batch_gradient_descent(Model *model, Iray2D *inputs, Iray2D *outpu
     }
 }
 
-#endif // !ITIMIZER_H
+#endif // !OPTIMIZER_H

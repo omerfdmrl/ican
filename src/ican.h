@@ -1,6 +1,6 @@
-#ifndef ISEE_H
+#ifndef ICAN_H
 
-#define ISEE_H
+#define ICAN_H
 
 #include <stddef.h>
 #include <stdio.h>
@@ -19,15 +19,15 @@
 #define PI 3.14159265358979323846
 
 typedef enum{
-    ILOG_LEVEL_FATAL = 0,
-    ILOG_LEVEL_ERROR = 1,
-    ILOG_LEVEL_WARN = 2,
-    ILOG_LEVEL_INFO = 3,
-    ILOG_LEVEL_DEBUG = 4,
-    ILOG_LEVEL_TRACE = 5
+    LOG_LEVEL_FATAL = 0,
+    LOG_LEVEL_ERROR = 1,
+    LOG_LEVEL_WARN = 2,
+    LOG_LEVEL_INFO = 3,
+    LOG_LEVEL_DEBUG = 4,
+    LOG_LEVEL_TRACE = 5
 } ILogLevels;
 
-#define ISERT(expr)                                         \
+#define ASSERT(expr)                                         \
     {                                                                \
         if (expr) {                                                  \
         } else {                                                     \
@@ -36,7 +36,7 @@ typedef enum{
         }                                                            \
     }
 
-#define ISERT_MSG(expr, message)                                 \
+#define ASSERT_MSG(expr, message)                                 \
     {                                                                     \
         if (expr) {                                                       \
         } else {                                                          \
@@ -77,12 +77,12 @@ typedef struct {
     SDL_Renderer *renderer;
 } ISDLContext;
 
-extern float ICONV_EMBOSS[3][3];
-extern float ICONV_EMBOSS2[3][3];
-extern float ICONV_LAPLACIAN[3][3];
-extern float ICONV_BLUR[3][3];
-extern float ICONV_SOBELX[3][3];
-extern float ICONV_SOBELY[3][3];
+extern float CONV_EMBOSS[3][3];
+extern float CONV_EMBOSS2[3][3];
+extern float CONV_LAPLACIAN[3][3];
+extern float CONV_BLUR[3][3];
+extern float CONV_SOBELX[3][3];
+extern float CONV_SOBELY[3][3];
 
 typedef enum {
     PAD_POST,
@@ -162,7 +162,7 @@ typedef enum
 
 #define MODEL_OUTPUT(m) m->layers[m->layer_count - 1]->output->data
 
-void ILOG(ILogLevels level, const char* message, ...);
+void LOG(ILogLevels level, const char* message, ...);
 void report_assertion_failure(const char* expression, const char* message, const char* file, int line);
 
 #define MAX_LINE_BYTE 2080
@@ -257,8 +257,8 @@ void initializer_random_uniform(Model *model, va_list args);
 void initializer_random_xavier(Model *model);
 void initializer_zeros(Model *model);
 
-void itimizer_finite_diff(Model *model, Iray2D *inputs, Iray2D *outputs, va_list args);
-void itimizer_batch_gradient_descent(Model *model, Iray2D *inputs, Iray2D *outputs, va_list args);
+void optimizer_finite_diff(Model *model, Iray2D *inputs, Iray2D *outputs, va_list args);
+void optimizer_batch_gradient_descent(Model *model, Iray2D *inputs, Iray2D *outputs, va_list args);
 
 Model *model_alloc(size_t layerCount);
 void model_add(Model *model, Layer *layer);
@@ -273,4 +273,4 @@ void model_free(Model *model);
 void io_export(Model *model, const char *fileName);
 Model *io_import(const char *fileName);
 
-#endif // !ISEE_H
+#endif // !ICAN_H

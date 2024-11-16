@@ -11,10 +11,10 @@ Iray3D *img_read_png(FILE *fp, ImgTypes type) {
     png_bytep *row_pointers = NULL;
 
     png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    ISERT_MSG(png != NULL, "Png struct could not created");
+    ASSERT_MSG(png != NULL, "Png struct could not created");
 
     png_infop info = png_create_info_struct(png);
-    ISERT_MSG(info != NULL, "Png struct informations could not created");
+    ASSERT_MSG(info != NULL, "Png struct informations could not created");
 
     if(setjmp(png_jmpbuf(png))) abort();
 
@@ -139,10 +139,10 @@ Iray3D *img_read_jpg(FILE *fp, ImgTypes type) {
 
 Iray3D *img_read(const char *imageName, ImgTypes type) {
     const char *extension = strrchr(imageName, '.');
-    ISERT_MSG(extension != NULL, "Image extension could not detected");
+    ASSERT_MSG(extension != NULL, "Image extension could not detected");
 
     FILE *fp = fopen(imageName, "rb");
-    ISERT_MSG(fp != NULL, "Image could not loaded");
+    ASSERT_MSG(fp != NULL, "Image could not loaded");
     
     Iray3D *output;
 
@@ -182,7 +182,7 @@ Iray3D *img_rotate(Iray3D *img, float angle) {
     int new_height = (int)(fabs(img->rows * cos(radians)) + fabs(img->cols * sin(radians)));
 
     Iray3D *output = iray3d_alloc(new_height, new_width, img->depth);
-    ISERT_MSG(output != NULL, "Output image allocation failed");
+    ASSERT_MSG(output != NULL, "Output image allocation failed");
 
     float center_x = img->cols / 2.0;
     float center_y = img->rows / 2.0;
@@ -221,14 +221,14 @@ Iray3D **imgs_read(const char *folderPath, size_t count, ImgTypes type) {
     size_t file_count = 0;
 
     dir = opendir(folderPath);
-    ISERT_MSG(dir != NULL, "Dir could not read");
+    ASSERT_MSG(dir != NULL, "Dir could not read");
 
     while ((entry = readdir(dir)) != NULL) {
         if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
             file_count++;
         }
     }
-    ISERT_MSG(file_count >= count, "Count is bigger than file count");
+    ASSERT_MSG(file_count >= count, "Count is bigger than file count");
     Iray3D **output = malloc(sizeof(Iray3D *) * count);
     size_t i = 0;
     rewinddir(dir);
@@ -254,14 +254,14 @@ Iray3D **imgs_read_wc(const char *folderPath, size_t count, ImgTypes type, Iray3
     size_t file_count = 0;
 
     dir = opendir(folderPath);
-    ISERT_MSG(dir != NULL, "Dir could not read");
+    ASSERT_MSG(dir != NULL, "Dir could not read");
 
     while ((entry = readdir(dir)) != NULL) {
         if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
             file_count++;
         }
     }
-    ISERT_MSG(file_count >= count, "Count is bigger than file count");
+    ASSERT_MSG(file_count >= count, "Count is bigger than file count");
     Iray3D **output = malloc(sizeof(Iray3D *) * count);
     size_t i = 0;
     rewinddir(dir);
@@ -290,10 +290,10 @@ void imgs_free(Iray3D **imgs, size_t count) {
 
 void img_write_png(FILE *fp, Iray3D *img) {
     png_structp png = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-    ISERT_MSG(png != NULL, "Png struct could not created");
+    ASSERT_MSG(png != NULL, "Png struct could not created");
 
     png_infop info = png_create_info_struct(png);
-    ISERT_MSG(info != NULL, "Png struct informations could not created");
+    ASSERT_MSG(info != NULL, "Png struct informations could not created");
 
     if (setjmp(png_jmpbuf(png))) abort();
 
@@ -377,10 +377,10 @@ void img_write_jpg(FILE *fp, Iray3D *img) {
 
 void img_write(const char *imageName, Iray3D *img) {
     const char *extension = strrchr(imageName, '.');
-    ISERT_MSG(extension != NULL, "Image extension could not detected");
+    ASSERT_MSG(extension != NULL, "Image extension could not detected");
 
     FILE *fp = fopen(imageName, "wb");
-    ISERT_MSG(fp != NULL, "Image could not opened");
+    ASSERT_MSG(fp != NULL, "Image could not opened");
 
     if (strcmp(extension, ".png") == 0) {
         img_write_png(fp, img);

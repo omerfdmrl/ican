@@ -1,6 +1,6 @@
-#ifndef IPROCESS_H
+#ifndef PROCESS_H
 
-#define IPROCESS_H
+#define PROCESS_H
 
 #include "ican.h"
 
@@ -203,4 +203,4 @@ void tokenizer_free(Tokenizer *tokenizer) {
     }
 }
 
-#endif // !IPROCESS_H
+#endif // !PROCESS_H

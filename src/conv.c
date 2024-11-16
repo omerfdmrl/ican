@@ -1,15 +1,15 @@
-#ifndef ICONV_H
+#ifndef CONV_H
 
-#define ICONV_H
+#define CONV_H
 
 #include "ican.h"
 
-float ICONV_EMBOSS[3][3] = {{-1, -1, 0}, {-1, 0, 1}, {0, -1, -1}};
-float ICONV_EMBOSS2[3][3] = {{-2, -1, 0}, {-1, 1, 1}, {0, 1, 2}};
-float ICONV_LAPLACIAN[3][3] = {{1, 1, 1}, {1, -8, 1}, {1, 1, 1}};
-float ICONV_BLUR[3][3] = {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
-float ICONV_SOBELX[3][3] = {{1, 0, -2}, {2, 0, -2}, {1, 0, 1}};
-float ICONV_SOBELY[3][3] = {{1, 2, 1}, {0, 0, 0}, {-1, -2, -1}};
+float CONV_EMBOSS[3][3] = {{-1, -1, 0}, {-1, 0, 1}, {0, -1, -1}};
+float CONV_EMBOSS2[3][3] = {{-2, -1, 0}, {-1, 1, 1}, {0, 1, 2}};
+float CONV_LAPLACIAN[3][3] = {{1, 1, 1}, {1, -8, 1}, {1, 1, 1}};
+float CONV_BLUR[3][3] = {{1, 1, 1}, {1, 1, 1}, {1, 1, 1}};
+float CONV_SOBELX[3][3] = {{1, 0, -2}, {2, 0, -2}, {1, 0, 1}};
+float CONV_SOBELY[3][3] = {{1, 2, 1}, {0, 0, 0}, {-1, -2, -1}};
 
 Iray3D *img_conv(Iray3D *img, float kernel[3][3], size_t stride) {
     size_t new_width = (img->cols - 3) / stride + 1;
@@ -125,7 +125,7 @@ Iray3D *img_mean_pool(Iray3D* img, size_t pool_size) {
     size_t new_height = img->rows / pool_size;
 
     Iray3D* output = iray3d_alloc(new_height, new_width, img->depth);
-    ISERT_MSG(output != NULL, "Output image allocation failed");
+    ASSERT_MSG(output != NULL, "Output image allocation failed");
 
     for (size_t i = 0; i < new_height; i++) {
         for (size_t j = 0; j < new_width; j++) {
@@ -158,8 +158,8 @@ Iray3D *img_mean_pool(Iray3D* img, size_t pool_size) {
 }
 
 Iray3D *img_edge_detect(Iray3D *img) {
-    Iray3D *grad_x = img_conv(img, ICONV_SOBELX, 1);
-    Iray3D *grad_y = img_conv(img, ICONV_SOBELY, 1);
+    Iray3D *grad_x = img_conv(img, CONV_SOBELX, 1);
+    Iray3D *grad_y = img_conv(img, CONV_SOBELY, 1);
 
     size_t new_width = grad_x->cols;
     size_t new_height = grad_x->rows;
@@ -188,4 +188,4 @@ Iray3D *img_edge_detect(Iray3D *img) {
     return output;
 }
 
-#endif // !ICONV_H
+#endif // !CONV_H

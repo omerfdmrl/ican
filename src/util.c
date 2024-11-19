@@ -75,6 +75,8 @@ void print_progress_footer(time_t timer, float cost) {
     printf("----------------------------------------------------------------------------------------------------------------------\n");
 }
 
+
+
 Iray2D *csv_read(const char *filename, size_t rows, size_t cols) {
     FILE *file = fopen(filename, "r");
     ASSERT(file != NULL);

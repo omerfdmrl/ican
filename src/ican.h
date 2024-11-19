@@ -90,9 +90,15 @@ typedef enum {
 } PadTypes;
 
 typedef struct {
-    char **words;
-    size_t size;
-    size_t capacity;
+    cJSON *vocab;
+    size_t  vocab_size;
+    cJSON *added_tokens;
+    cJSON *bpe_rules;
+    size_t bpe_rule_size;
+    char *unk_token;
+    char *bos_token;
+    char *eos_token;
+    size_t max_length;
 } Tokenizer;
 
 typedef enum {
@@ -221,9 +227,14 @@ Iray3D *img_edge_detect(Iray3D *img);
 Iray2D *one_hot_encoding(Iray2D *data);
 Iray2D *standard_scaler(Iray2D *data);
 Iray2D *pad_sequences(Iray2D *data, size_t maxLength, PadTypes padding, PadTypes truncating, float value);
-Tokenizer *fit_on_texts(const char *text);
-Iray1D *texts_to_sequences(Tokenizer *tokenizer, const char *text);
+Tokenizer *tokenizer_alloc();
 void tokenizer_free(Tokenizer *tokenizer);
+void load_vocab_from_json(Tokenizer *tokenizer, const char *file_path);
+void load_bpe_from_text(Tokenizer *tokenizer, const char *file_path);
+void load_tokenizer_config_from_json(Tokenizer *tokenizer, const char *file_path);
+void load_tokenizer_from_json(Tokenizer *tokenizer, const char *file_path);
+bool match_token_with_properties(const char *token, cJSON *properties);
+Iray1D *fits_on_text(Tokenizer *tokenizer, const char *text);
 
 float sigmoid(float x);
 float dsigmoid(float x);

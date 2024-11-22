@@ -173,6 +173,39 @@ void report_assertion_failure(const char* expression, const char* message, const
 
 #define MAX_LINE_BYTE 2080
 
+typedef struct ScaledDotProductAttention {
+    Iray2D *query;
+    Iray2D *key;
+    Iray2D *value;
+    Iray2D *W_q;
+    Iray2D *W_k;
+    Iray2D *W_v;
+    size_t head_dim;
+    size_t embed_dim;
+    size_t seq_len;
+    bool is_mask;
+} ScaledDotProductAttention;
+
+typedef struct MultiHeadAttention {
+    ScaledDotProductAttention **sdpa;
+    Iray2D *W_o;
+    size_t embed_dim;
+    size_t seq_len;
+    size_t num_heads;
+} MultiHeadAttention;
+
+typedef struct Encoder {
+    MultiHeadAttention *mha;
+    Layer *feed_forward;
+} Encoder;
+
+ScaledDotProductAttention *transformers_sdpa_alloc(size_t seq_len, size_t head_dim, size_t embed_dim, bool is_mask);
+void transformers_sdpa_free(ScaledDotProductAttention *sdpa);
+Iray2D *transformers_sdpa_forward(ScaledDotProductAttention *sdpa);
+MultiHeadAttention *transformers_mha_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, bool is_mask);
+void transformers_mha_free(MultiHeadAttention *mha);
+Iray2D *transformers_mha_forward(MultiHeadAttention *mha);
+
 Iray1D *iray1d_alloc(size_t rows);
 void iray1d_free(Iray1D *iray);
 Iray2D *iray2d_alloc(size_t rows, size_t cols);
@@ -181,22 +214,30 @@ Iray3D *iray3d_alloc(size_t rows, size_t cols, size_t depth);
 void iray3d_free(Iray3D *iray);
 Iray1D *iray1d_add(Iray1D *A, Iray1D *B);
 Iray1D *iray1d_dot(Iray1D *A, Iray1D *B);
+Iray1D *iray1d_scale(Iray1D *A, float scale);
 Iray1D *iray1d_slice(Iray1D *iray, size_t start, size_t end);
 Iray1D *iray1d_apply(Iray1D *iray1d, float(*fn)(float x));
 Iray1D *iray1d_fill(Iray1D *iray, float value);
+float iray1d_max(Iray1D *iray);
 Iray1D *iray1d_clone(Iray1D *iray);
 void iray1d_print(Iray1D *iray);
 Iray2D *iray2d_transpose(Iray2D *iray);
 Iray2D *iray2d_dot(Iray2D *A, Iray2D *B);
+Iray2D *iray2d_div(Iray2D *A, Iray2D *B);
+Iray2D *iray2d_scale(Iray2D *A, float scale);
+Iray2D *iray2d_softmax(Iray2D *matrix, int axis);
+Iray2D *iray2d_concat(Iray2D **matrices, size_t num_matrices);
 Iray2D *iray2d_slice(Iray2D *iray, size_t start, size_t end);
 Iray2D *iray2d_add(Iray2D *A, Iray2D *B);
 Iray2D *iray2d_apply(Iray2D *iray, float(*fn)(float value));
 Iray2D *iray2d_fill(Iray2D *iray, float value);
+float iray2d_max(Iray2D *iray);
 Iray2D *iray2d_clone(Iray2D *iray);
 void iray2d_print(Iray2D *iray);
 Iray3D *iray3d_add(Iray3D *A, Iray3D *B);
 Iray3D *iray3d_apply(Iray3D *iray, float (*fn)(float value));
 Iray3D *iray3d_fill(Iray3D *iray, float value);
+float iray3d_max(Iray3D *iray);
 Iray3D *iray3d_clone(Iray3D *iray);
 Iray3D *iray3d_transpose(Iray3D *iray);
 void iray3d_print(Iray3D *iray);

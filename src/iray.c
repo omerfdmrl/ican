@@ -214,49 +214,41 @@ Iray2D *iray2d_softmax(Iray2D *matrix, int axis) {
     Iray2D *result = iray2d_alloc(matrix->rows, matrix->cols);
 
     if (axis == 0) {
-        // Sütun ekseni boyunca softmax
         for (size_t j = 0; j < matrix->cols; j++) {
             float max_val = -INFINITY;
             float sum_exp = 0.0f;
 
-            // Maksimum değeri bul
             for (size_t i = 0; i < matrix->rows; i++) {
                 if (matrix->data[i][j] > max_val) {
                     max_val = matrix->data[i][j];
                 }
             }
 
-            // e^(x - max) hesapla ve toplamı al
             for (size_t i = 0; i < matrix->rows; i++) {
                 result->data[i][j] = expf(matrix->data[i][j] - max_val);
                 sum_exp += result->data[i][j];
             }
 
-            // Softmax değerini hesapla
             for (size_t i = 0; i < matrix->rows; i++) {
                 result->data[i][j] /= sum_exp;
             }
         }
     } else if (axis == 1) {
-        // Satır ekseni boyunca softmax
         for (size_t i = 0; i < matrix->rows; i++) {
             float max_val = -INFINITY;
             float sum_exp = 0.0f;
 
-            // Maksimum değeri bul
             for (size_t j = 0; j < matrix->cols; j++) {
                 if (matrix->data[i][j] > max_val) {
                     max_val = matrix->data[i][j];
                 }
             }
 
-            // e^(x - max) hesapla ve toplamı al
             for (size_t j = 0; j < matrix->cols; j++) {
                 result->data[i][j] = expf(matrix->data[i][j] - max_val);
                 sum_exp += result->data[i][j];
             }
 
-            // Softmax değerini hesapla
             for (size_t j = 0; j < matrix->cols; j++) {
                 result->data[i][j] /= sum_exp;
             }

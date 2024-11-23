@@ -13,6 +13,9 @@ float dsigmoid(float x) {
 float dtanh(float x) {
 	return 1.0 / (coshf(x) * coshf(x));
 }
+float relu(float x) {
+    return fmaxf(0.0f, x);  // Eğer x negatifse 0 döndür, pozitifse x'i döndür
+}
 
 float random_uniform(float low,float high) {
 	return ((float) rand() / (float) RAND_MAX) * (high - low) + low;

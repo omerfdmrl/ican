@@ -104,6 +104,14 @@ Iray1D *iray1d_dot(Iray1D *A, Iray1D *B) {
     return output;
 }
 
+Iray1D *iray1d_scale(Iray1D *A, float scale) {
+    Iray1D *scaled = iray1d_alloc(A->rows);
+    for (size_t i = 0; i < A->rows; i++) {
+        scaled->data[i] = A->data[i] / scale;
+    }
+    return scaled;
+}
+
 Iray1D *iray1d_slice(Iray1D *iray, size_t start, size_t end) {
     size_t new_size = end - start;
     Iray1D *result = iray1d_alloc(new_size);
@@ -127,6 +135,16 @@ Iray1D *iray1d_fill(Iray1D *iray, float value) {
         output->data[i] = value;
     }
     return output;
+}
+
+float iray1d_max(Iray1D *iray) {
+    float max = iray->data[0];
+    for (size_t i = 0; i < iray->rows; i++) {
+        if (iray->data[i] > max) {
+            max = iray->data[i];
+        }
+    }
+    return max;
 }
 
 Iray1D *iray1d_clone(Iray1D *iray) {
@@ -167,6 +185,102 @@ Iray2D *iray2d_dot(Iray2D *A, Iray2D *B) {
         }
     }
     return dotProduct;
+}
+
+Iray2D *iray2d_div(Iray2D *A, Iray2D *B) {
+    ASSERT(A->cols == B->rows);
+    Iray2D *dived = iray2d_alloc(A->rows, B->cols);
+    for (size_t i = 0; i < A->rows; i++) {
+        for (size_t j = 0; j < B->cols; j++) {
+            dived->data[i][j] = A->data[i][j] / B->data[i][j];
+        }
+    }
+    return dived;
+}
+
+Iray2D *iray2d_scale(Iray2D *A, float scale) {
+    Iray2D *scaled = iray2d_alloc(A->rows, A->cols);
+    for (size_t i = 0; i < A->rows; i++) {
+        for (size_t j = 0; j < A->cols; j++) {
+            scaled->data[i][j] = A->data[i][j] / scale;
+        }
+    }
+    return scaled;
+}
+
+Iray2D *iray2d_softmax(Iray2D *matrix, int axis) {
+    if (!matrix) return NULL;
+
+    Iray2D *result = iray2d_alloc(matrix->rows, matrix->cols);
+
+    if (axis == 0) {
+        for (size_t j = 0; j < matrix->cols; j++) {
+            float max_val = -INFINITY;
+            float sum_exp = 0.0f;
+
+            for (size_t i = 0; i < matrix->rows; i++) {
+                if (matrix->data[i][j] > max_val) {
+                    max_val = matrix->data[i][j];
+                }
+            }
+
+            for (size_t i = 0; i < matrix->rows; i++) {
+                result->data[i][j] = expf(matrix->data[i][j] - max_val);
+                sum_exp += result->data[i][j];
+            }
+
+            for (size_t i = 0; i < matrix->rows; i++) {
+                result->data[i][j] /= sum_exp;
+            }
+        }
+    } else if (axis == 1) {
+        for (size_t i = 0; i < matrix->rows; i++) {
+            float max_val = -INFINITY;
+            float sum_exp = 0.0f;
+
+            for (size_t j = 0; j < matrix->cols; j++) {
+                if (matrix->data[i][j] > max_val) {
+                    max_val = matrix->data[i][j];
+                }
+            }
+
+            for (size_t j = 0; j < matrix->cols; j++) {
+                result->data[i][j] = expf(matrix->data[i][j] - max_val);
+                sum_exp += result->data[i][j];
+            }
+
+            for (size_t j = 0; j < matrix->cols; j++) {
+                result->data[i][j] /= sum_exp;
+            }
+        }
+    }
+
+    return result;
+}
+
+Iray2D *iray2d_concat(Iray2D **matrices, size_t num_matrices) {
+  if (num_matrices == 0) return NULL;
+
+  size_t rows = matrices[0]->rows;
+
+  size_t total_cols = 0;
+  for (size_t i = 0; i < num_matrices; i++) {
+    total_cols += matrices[i]->cols;
+  }
+
+  Iray2D *concat = iray2d_alloc(rows, total_cols);
+
+  size_t col_offset = 0;
+  for (size_t i = 0; i < num_matrices; i++) {
+    for (size_t r = 0; r < rows; r++) {
+      for (size_t c = 0; c < matrices[i]->cols; c++) {
+        concat->data[r][col_offset + c] = matrices[i]->data[r][c];
+      }
+    }
+    col_offset += matrices[i]->cols;
+  }
+
+  return concat;
 }
 
 Iray2D *iray2d_slice(Iray2D *iray, size_t start, size_t end) {
@@ -212,6 +326,18 @@ Iray2D *iray2d_fill(Iray2D *iray, float value) {
     return filled;
 }
 
+float iray2d_max(Iray2D *iray) {
+    float max = iray->data[0][0];
+    for (size_t i = 0; i < iray->rows; i++) {
+        for (size_t j = 0; j < iray->cols; j++) {
+            if (iray->data[i][j] > max) {
+                max = iray->data[i][j];
+            }
+        }
+    }
+    return max;
+}
+
 Iray2D *iray2d_clone(Iray2D *iray) {
     Iray2D *output = iray2d_alloc(iray->rows, iray->cols);
     for (size_t i = 0; i < iray->rows; i++) {
@@ -219,6 +345,18 @@ Iray2D *iray2d_clone(Iray2D *iray) {
             output->data[i][j] = iray->data[i][j];
         }
         
+    }
+    return output;
+}
+
+Iray1D *iray2d_flatten(Iray2D *iray) {
+    Iray1D *output = iray1d_alloc(iray->rows * iray->cols);
+    size_t index = 0;
+    for (size_t i = 0; i < iray->rows; i++) {
+        for (size_t j = 0; j < iray->cols; j++) {
+            output->data[index] = iray->data[i][j];
+            index++;
+        }
     }
     return output;
 }
@@ -273,6 +411,20 @@ Iray3D *iray3d_fill(Iray3D *iray, float value) {
         }
     }
     return filled;
+}
+
+float iray3d_max(Iray3D *iray) {
+    float max = iray->data[0][0][0];
+    for (size_t i = 0; i < iray->rows; i++) {
+        for (size_t j = 0; j < iray->cols; j++) {
+            for (size_t k = 0; k < iray->depth; k++) {
+                if(iray->data[i][j][k] > max) {
+                    max = iray->data[i][j][k];
+                }
+            }
+        }
+    }
+    return max;
 }
 
 Iray3D *iray3d_clone(Iray3D *iray) {

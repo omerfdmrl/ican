@@ -327,37 +327,24 @@ int main() {
   // Parametreler
   size_t embed_dim = 512;
   size_t num_heads = 8;
-  size_t seq_len = 10; // Örnek dizi uzunluğu
-  bool is_mask = true; // Mask kullanımı
+  size_t seq_len = 10;
+  bool is_mask = true;
 
-  // Multi-Head Attention modeli oluşturuluyor
-  MultiHeadAttention *mha = transformers_mha_alloc(embed_dim, num_heads, seq_len, is_mask);
+  Encoder *mha = transformers_encoder_alloc(embed_dim, num_heads, seq_len, is_mask);
 
-  // Giriş verisi oluşturuluyor (örneğin rasgele)
-  for (size_t i = 0; i < num_heads; i++) {
-    // Burada giriş verisi doldurulmalı (örnek olarak, rasgele veri)
-    for (size_t j = 0; j < seq_len; j++) {
-      for (size_t k = 0; k < embed_dim / num_heads; k++) {
-        mha->sdpa[i]->query->data[j][k] = (float)rand() / (float)RAND_MAX; // Query için rastgele değer
-        mha->sdpa[i]->key->data[j][k] = (float)rand() / (float)RAND_MAX;   // Key için rastgele değer
-        mha->sdpa[i]->value->data[j][k] = (float)rand() / (float)RAND_MAX; // Value için rastgele değer
-      }
-    }
-  }
 
-  // MHA forward işlemi
-  Iray2D *output = transformers_mha_forward(mha);
+    Iray2D *input = iray2d_alloc(seq_len, embed_dim / num_heads);
+  Iray1D *output = transformers_encoder_forward(mha, input);
 
-  // Çıktıyı kontrol et (örneğin, ilk 5 değeri yazdır)
   printf("Output (first 5 values):\n");
   for (size_t i = 0; i < 5; i++) {
-    printf("%f ", output->data[i][0]);  // Çıktının ilk 5 değerini yazdır
+    printf("%f ", output->data[i]);
   }
   printf("\n");
 
-  // Belleği serbest bırak
-  transformers_mha_free(mha);
-  iray2d_free(output);
+  transformers_encoder_free(mha);
+  iray1d_free(output);
+  iray2d_free(input);
 
   return 0;
 }

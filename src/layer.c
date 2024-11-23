@@ -199,7 +199,11 @@ void layer_activation_softmax_forward(Layer *layer) {
     {
         layer->output->data[i] /= sum;
     }
-    
+}
+void layer_activation_relu_forward(Layer *layer) {
+    for (size_t i = 0; i < layer->outputSize; i++) {
+        layer->output->data[i] = relu(layer->input->data[i]);
+    }
 }
 void layer_activation_sigmoid_backward(Layer *layer, float *delta, float rate) {
     (void)delta;
@@ -231,7 +235,13 @@ void layer_activation_softmax_backward(Layer *layer, float *delta, float rate) {
         }
     }
 }
-
+void layer_activation_relu_backward(Layer *layer, float *delta, float rate) {
+    (void)delta;
+    (void)rate;
+    for (size_t i = 0; i < layer->outputSize; i++) {
+        layer->input->data[i] = layer->output->data[i] > 0 ? layer->output->data[i] : 0;
+    }
+}
 void layer_dropout_forward(Layer *layer) {
     for (size_t i = 0; i < layer->outputSize; i++)
     {
@@ -362,6 +372,9 @@ Layer *layer_activation(ActivationTypes activation) {
     case Softmax:
         layer->forward = layer_activation_softmax_forward;
         layer->backward = layer_activation_softmax_backward;
+    case RELU:
+        layer->forward = layer_activation_relu_forward;
+        layer->backward = layer_activation_relu_backward;
     }
     return layer;
 }

@@ -357,6 +357,18 @@ Iray2D *iray2d_clone(Iray2D *iray) {
     return output;
 }
 
+Iray1D *iray2d_flatten(Iray2D *iray) {
+    Iray1D *output = iray1d_alloc(iray->rows * iray->cols);
+    size_t index = 0;
+    for (size_t i = 0; i < iray->rows; i++) {
+        for (size_t j = 0; j < iray->cols; j++) {
+            output->data[index] = iray->data[i][j];
+            index++;
+        }
+    }
+    return output;
+}
+
 void iray2d_print(Iray2D *iray) {
      printf("rows = %zu, cols = %zu\n", iray->rows, iray->cols);
     for (size_t i = 0; i < iray->rows; i++) {

@@ -68,23 +68,29 @@ About folder hierarchy;
 - [ ] Layers
   - [x] Activation
   - [x] Dense
-  - [ ] Dropout (exists, but have problems)
+  - [x] Dropout
   - [x] Shuffle
   - [x] Max Pooling
   - [x] Min Pooling
   - [x] Mean Pooling
   - [ ] Flatten
-  - [ ] RNN (still testing)
-  - [ ] GRU (under development)
+  - [x] RNN
+  - [x] GRU
 - [ ] Models
-  - [ ] Sequential
+  - [x] Sequential
   - [ ] GAN
 - [ ] Optimizers
   - [x] Finite Diff
   - [ ] Gradient Descent
     - [x] Batch Gradient Descent
     - [ ] Stochastic Gradient Descent
-    - [ ] Mini-Batch Gradient Descent
+    - [ ] Mini-Batch Gradient Descent 
+- [ ] Transformers
+    - [x] Encoder
+    - [ ] Decoder
+    - [ ] Model support
+        - [ ] GPT2
+        - [ ] Llama  
 - [x] Utils
   - [x] CSV
   - [x] IMG

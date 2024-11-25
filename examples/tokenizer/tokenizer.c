@@ -1,3 +1,7 @@
+/**
+ * make run SOURCE=./examples/tokenizer/tokenizer.c
+ */
+
 #include "../../src/ican.h"
 
 int main(void) {

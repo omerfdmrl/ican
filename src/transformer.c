@@ -18,19 +18,18 @@ Iray2D *create_causal_mask(size_t seq_len) {
 }
 
 void make_dropout(Iray2D *data, float rate) {
-    for (size_t i = 0; i < data->rows; i++) {
-        for (size_t j = 0; j < data->cols; j++) {
-          float rand = random_uniform(0, 1);
-          if(rand < rate) {
-              data->data[i][j] = 0;    
-          }
-        }
-        
+  for (size_t i = 0; i < data->rows; i++) {
+    for (size_t j = 0; j < data->cols; j++) {
+      float rand = random_uniform(0, 1);
+      if(rand < rate) {
+          data->data[i][j] = 0;    
+      }
     }
+  }
 }
 
-ScaledDotProductAttention *transformer_sdpa_alloc(size_t seq_len, size_t head_dim, size_t embed_dim, bool is_mask) {
-  ScaledDotProductAttention *sdpa = (ScaledDotProductAttention *)malloc(sizeof(ScaledDotProductAttention));
+TransformScaledDotProductAttention *transformer_sdpa_alloc(size_t seq_len, size_t head_dim, size_t embed_dim, bool is_mask) {
+  TransformScaledDotProductAttention *sdpa = (TransformScaledDotProductAttention *)malloc(sizeof(TransformScaledDotProductAttention));
   sdpa->query = iray2d_alloc(seq_len, head_dim);
   sdpa->key = iray2d_alloc(seq_len, head_dim);
   sdpa->value = iray2d_alloc(seq_len, head_dim);
@@ -43,7 +42,7 @@ ScaledDotProductAttention *transformer_sdpa_alloc(size_t seq_len, size_t head_di
   sdpa->W_v = iray2d_alloc(embed_dim, head_dim);
   return sdpa;
 }
-void transformer_sdpa_free(ScaledDotProductAttention *sdpa) {
+void transformer_sdpa_free(TransformScaledDotProductAttention *sdpa) {
   iray2d_free(sdpa->query);
   iray2d_free(sdpa->key);
   iray2d_free(sdpa->value);
@@ -52,7 +51,7 @@ void transformer_sdpa_free(ScaledDotProductAttention *sdpa) {
   iray2d_free(sdpa->W_v);
   free(sdpa);
 }
-Iray2D *transformer_sdpa_forward(ScaledDotProductAttention *sdpa) {
+Iray2D *transformer_sdpa_forward(TransformScaledDotProductAttention *sdpa) {
   Iray2D *key_transposed = iray2d_transpose(sdpa->key);
   Iray2D *matmul = iray2d_dot(sdpa->query, key_transposed);
   iray2d_free(key_transposed);
@@ -75,9 +74,9 @@ Iray2D *transformer_sdpa_forward(ScaledDotProductAttention *sdpa) {
   return output;
 }
 
-MultiHeadAttention *transformer_mha_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, bool is_mask) {
-  MultiHeadAttention *mha = (MultiHeadAttention *)malloc(sizeof(MultiHeadAttention));
-  mha->sdpa = (ScaledDotProductAttention **)malloc(sizeof(ScaledDotProductAttention *) * num_heads);
+TransformMultiHeadAttention *transformer_mha_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, bool is_mask) {
+  TransformMultiHeadAttention *mha = (TransformMultiHeadAttention *)malloc(sizeof(TransformMultiHeadAttention));
+  mha->sdpa = (TransformScaledDotProductAttention **)malloc(sizeof(TransformScaledDotProductAttention *) * num_heads);
   mha->embed_dim = embed_dim;
   mha->num_heads = num_heads;
   mha->seq_len = seq_len;
@@ -88,7 +87,7 @@ MultiHeadAttention *transformer_mha_alloc(size_t embed_dim, size_t num_heads, si
   }
   return mha;
 }
-void transformer_mha_free(MultiHeadAttention *mha) {
+void transformer_mha_free(TransformMultiHeadAttention *mha) {
   for (size_t i = 0; i < mha->num_heads; i++) {
     transformer_sdpa_free(mha->sdpa[i]);
   }
@@ -96,7 +95,7 @@ void transformer_mha_free(MultiHeadAttention *mha) {
   free(mha->sdpa);
   free(mha);
 }
-Iray2D *transformer_mha_forward(MultiHeadAttention *mha) {
+Iray2D *transformer_mha_forward(TransformMultiHeadAttention *mha) {
   Iray2D **sdpa_outputs = (Iray2D **)malloc(sizeof(Iray2D *) * mha->num_heads);
   for (size_t i = 0; i < mha->num_heads; i++) {
     mha->sdpa[i]->query = iray2d_dot(mha->sdpa[i]->query, mha->sdpa[i]->W_q);
@@ -115,8 +114,8 @@ Iray2D *transformer_mha_forward(MultiHeadAttention *mha) {
   return output;
 }
 
-Norm *transformer_norm_alloc(size_t embed_dim) {
-  Norm *norm = malloc(sizeof(Norm));
+TransformNorm *transformer_norm_alloc(size_t embed_dim) {
+  TransformNorm *norm = malloc(sizeof(TransformNorm));
   norm->embed_dim = embed_dim;
   norm->gamma = malloc(embed_dim * sizeof(float));
   norm->beta = malloc(embed_dim * sizeof(float));
@@ -128,12 +127,12 @@ Norm *transformer_norm_alloc(size_t embed_dim) {
 
   return norm;
 }
-void transformer_norm_free(Norm *norm) {
+void transformer_norm_free(TransformNorm *norm) {
   free(norm->gamma);
   free(norm->beta);
   free(norm);
 }
-Iray2D *transformer_norm_forward(Norm *ln, Iray2D *input, size_t seq_len, size_t embed_dim) {
+Iray2D *transformer_norm_forward(TransformNorm *ln, Iray2D *input, size_t seq_len, size_t embed_dim) {
   Iray2D *output = iray2d_alloc(seq_len, embed_dim);
 
   for (size_t i = 0; i < seq_len; i++) {
@@ -158,8 +157,8 @@ Iray2D *transformer_norm_forward(Norm *ln, Iray2D *input, size_t seq_len, size_t
   return output;
 }
 
-Encoder *transformer_encoder_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, float dropout, bool is_mask) {
-  Encoder *encoder = (Encoder *)malloc(sizeof(Encoder));
+TransformEncoder *transformer_encoder_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, float dropout, bool is_mask) {
+  TransformEncoder *encoder = (TransformEncoder *)malloc(sizeof(TransformEncoder));
   encoder->mha = transformer_mha_alloc(embed_dim, num_heads, seq_len, is_mask);
   encoder->norm = transformer_norm_alloc(embed_dim);
   Layer *ld1 = layer_dense(embed_dim, 4 * embed_dim);
@@ -177,7 +176,7 @@ Encoder *transformer_encoder_alloc(size_t embed_dim, size_t num_heads, size_t se
   model_randomize(RandomNormal, encoder->feed_forward);
   return encoder;
 }
-Iray2D *transformer_encoder_forward(Encoder *encoder, Iray2D *input) {
+Iray2D *transformer_encoder_forward(TransformEncoder *encoder, Iray2D *input) {
   ASSERT_MSG(input->rows == encoder->seq_len && input->cols == encoder->embed_dim, "Input dimensions do not match encoder configuration");
 
   for (size_t i = 0; i < encoder->num_heads; i++) {
@@ -231,7 +230,7 @@ Iray2D *transformer_encoder_forward(Encoder *encoder, Iray2D *input) {
 
   return norm2_output;
 }
-void transformer_encoder_free(Encoder *encoder) {
+void transformer_encoder_free(TransformEncoder *encoder) {
   model_free(encoder->feed_forward);
   transformer_mha_free(encoder->mha);
   transformer_norm_free(encoder->norm);

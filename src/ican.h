@@ -174,7 +174,7 @@ void report_assertion_failure(const char* expression, const char* message, const
 
 #define MAX_LINE_BYTE 2080
 
-typedef struct ScaledDotProductAttention {
+typedef struct TransformScaledDotProductAttention {
     Iray2D *query;
     Iray2D *key;
     Iray2D *value;
@@ -185,44 +185,44 @@ typedef struct ScaledDotProductAttention {
     size_t embed_dim;
     size_t seq_len;
     bool is_mask;
-} ScaledDotProductAttention;
+} TransformScaledDotProductAttention;
 
-typedef struct MultiHeadAttention {
-    ScaledDotProductAttention **sdpa;
+typedef struct TransformMultiHeadAttention {
+    TransformScaledDotProductAttention **sdpa;
     Iray2D *W_o;
     size_t embed_dim;
     size_t seq_len;
     size_t num_heads;
-} MultiHeadAttention;
+} TransformMultiHeadAttention;
 
-typedef struct Norm {
+typedef struct TransformNorm {
     size_t embed_dim;
     float *gamma;
     float *beta;
-} Norm;
+} TransformNorm;
 
-typedef struct Encoder {
-    MultiHeadAttention *mha;
-    Norm *norm;
+typedef struct TransformEncoder {
+    TransformMultiHeadAttention *mha;
+    TransformNorm *norm;
     Model *feed_forward;
     size_t num_heads;
     size_t embed_dim;
     size_t seq_len;
     float dropout;
-} Encoder;
+} TransformEncoder;
 
-ScaledDotProductAttention *transformer_sdpa_alloc(size_t seq_len, size_t head_dim, size_t embed_dim, bool is_mask);
-void transformer_sdpa_free(ScaledDotProductAttention *sdpa);
-Iray2D *transformer_sdpa_forward(ScaledDotProductAttention *sdpa);
-MultiHeadAttention *transformer_mha_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, bool is_mask);
-void transformer_mha_free(MultiHeadAttention *mha);
-Iray2D *transformer_mha_forward(MultiHeadAttention *mha);
-Norm *transformer_norm_alloc(size_t embed_dim);
-void transformer_norm_free(Norm *norm);
-Iray2D *transformer_norm_forward(Norm *ln, Iray2D *input, size_t seq_len, size_t embed_dim);
-Encoder *transformer_encoder_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, float dropout, bool is_mask);
-Iray2D *transformer_encoder_forward(Encoder *encoder, Iray2D *input);
-void transformer_encoder_free(Encoder *encoder);
+TransformScaledDotProductAttention *transformer_sdpa_alloc(size_t seq_len, size_t head_dim, size_t embed_dim, bool is_mask);
+void transformer_sdpa_free(TransformScaledDotProductAttention *sdpa);
+Iray2D *transformer_sdpa_forward(TransformScaledDotProductAttention *sdpa);
+TransformMultiHeadAttention *transformer_mha_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, bool is_mask);
+void transformer_mha_free(TransformMultiHeadAttention *mha);
+Iray2D *transformer_mha_forward(TransformMultiHeadAttention *mha);
+TransformNorm *transformer_norm_alloc(size_t embed_dim);
+void transformer_norm_free(TransformNorm *norm);
+Iray2D *transformer_norm_forward(TransformNorm *ln, Iray2D *input, size_t seq_len, size_t embed_dim);
+TransformEncoder *transformer_encoder_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, float dropout, bool is_mask);
+Iray2D *transformer_encoder_forward(TransformEncoder *encoder, Iray2D *input);
+void transformer_encoder_free(TransformEncoder *encoder);
 
 Iray1D *iray1d_alloc(size_t rows);
 void iray1d_free(Iray1D *iray);

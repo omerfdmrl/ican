@@ -5,7 +5,7 @@
 #include "./src/ican.h"
 #include <time.h>
 int main() {
-    srand(time(0));
+    srand(50);
     const size_t seq_len = 5;
     const size_t embed_dim = 16;
     const size_t num_heads = 8;
@@ -20,7 +20,7 @@ int main() {
     printf("Input Matrix:\n");
     iray2d_print(input);
 
-    Encoder *encoder = transformer_encoder_alloc(embed_dim,num_heads, seq_len, true);
+    TransformEncoder *encoder = transformer_encoder_alloc(embed_dim,num_heads, seq_len, 0.2, true);
 
     Iray2D *output = transformer_encoder_forward(encoder, input);
 

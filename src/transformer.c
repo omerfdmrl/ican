@@ -17,6 +17,18 @@ Iray2D *create_causal_mask(size_t seq_len) {
   return mask;
 }
 
+void make_dropout(Iray2D *data, float rate) {
+    for (size_t i = 0; i < data->rows; i++) {
+        for (size_t j = 0; j < data->cols; j++) {
+          float rand = random_uniform(0, 1);
+          if(rand < rate) {
+              data->data[i][j] = 0;    
+          }
+        }
+        
+    }
+}
+
 ScaledDotProductAttention *transformer_sdpa_alloc(size_t seq_len, size_t head_dim, size_t embed_dim, bool is_mask) {
   ScaledDotProductAttention *sdpa = (ScaledDotProductAttention *)malloc(sizeof(ScaledDotProductAttention));
   sdpa->query = iray2d_alloc(seq_len, head_dim);
@@ -146,7 +158,7 @@ Iray2D *transformer_norm_forward(Norm *ln, Iray2D *input, size_t seq_len, size_t
   return output;
 }
 
-Encoder *transformer_encoder_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, bool is_mask) {
+Encoder *transformer_encoder_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, float dropout, bool is_mask) {
   Encoder *encoder = (Encoder *)malloc(sizeof(Encoder));
   encoder->mha = transformer_mha_alloc(embed_dim, num_heads, seq_len, is_mask);
   encoder->norm = transformer_norm_alloc(embed_dim);
@@ -161,6 +173,7 @@ Encoder *transformer_encoder_alloc(size_t embed_dim, size_t num_heads, size_t se
   encoder->embed_dim = embed_dim;
   encoder->num_heads = num_heads;
   encoder->seq_len = seq_len;
+  encoder->dropout = dropout;
   model_randomize(RandomNormal, encoder->feed_forward);
   return encoder;
 }
@@ -181,6 +194,7 @@ Iray2D *transformer_encoder_forward(Encoder *encoder, Iray2D *input) {
   }
 
   Iray2D *norm_output = transformer_norm_forward(encoder->norm, output, encoder->seq_len, encoder->embed_dim);
+  make_dropout(norm_output, encoder->dropout);
 
   Iray1D *norm_o_flatted = iray2d_flatten(norm_output);
 
@@ -189,23 +203,33 @@ Iray2D *transformer_encoder_forward(Encoder *encoder, Iray2D *input) {
 
   float *ff_output = MODEL_OUTPUT(encoder->feed_forward);
 
-  Iray2D *o = iray2d_alloc(encoder->seq_len, encoder->embed_dim);
+  Iray2D *ff_layer_output = iray2d_alloc(encoder->seq_len, encoder->embed_dim);
   for (size_t i = 0; i < encoder->seq_len; i++) {
       model_input(encoder->feed_forward, norm_output->data[i]);
       model_forward(encoder->feed_forward);
 
       float *ff_output = MODEL_OUTPUT(encoder->feed_forward);
       for (size_t j = 0; j < encoder->embed_dim; j++) {
-          o->data[i][j] = ff_output[j];
+          ff_layer_output->data[i][j] = ff_output[j];
       }
   }
+
+  for (size_t i = 0; i < encoder->seq_len; i++) {
+      for (size_t j = 0; j < encoder->embed_dim; j++) {
+          ff_layer_output->data[i][j] += norm_output->data[i][j];
+      }
+  }
+
+  Iray2D *norm2_output = transformer_norm_forward(encoder->norm, ff_layer_output, encoder->seq_len, encoder->embed_dim);
+  make_dropout(norm2_output, encoder->dropout);
 
   iray2d_free(norm_output);
   iray1d_free(norm_o_flatted);
   iray2d_free(output);
+  iray2d_free(ff_layer_output);
   free(ff_output);
 
-  return o;
+  return norm2_output;
 }
 void transformer_encoder_free(Encoder *encoder) {
   model_free(encoder->feed_forward);

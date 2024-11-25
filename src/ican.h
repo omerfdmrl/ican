@@ -208,6 +208,7 @@ typedef struct Encoder {
     size_t num_heads;
     size_t embed_dim;
     size_t seq_len;
+    float dropout;
 } Encoder;
 
 ScaledDotProductAttention *transformer_sdpa_alloc(size_t seq_len, size_t head_dim, size_t embed_dim, bool is_mask);
@@ -219,7 +220,7 @@ Iray2D *transformer_mha_forward(MultiHeadAttention *mha);
 Norm *transformer_norm_alloc(size_t embed_dim);
 void transformer_norm_free(Norm *norm);
 Iray2D *transformer_norm_forward(Norm *ln, Iray2D *input, size_t seq_len, size_t embed_dim);
-Encoder *transformer_encoder_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, bool is_mask);
+Encoder *transformer_encoder_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, float dropout, bool is_mask);
 Iray2D *transformer_encoder_forward(Encoder *encoder, Iray2D *input);
 void transformer_encoder_free(Encoder *encoder);
 

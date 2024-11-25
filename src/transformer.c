@@ -35,6 +35,9 @@ void transformers_sdpa_free(ScaledDotProductAttention *sdpa) {
   iray2d_free(sdpa->query);
   iray2d_free(sdpa->key);
   iray2d_free(sdpa->value);
+  iray2d_free(sdpa->W_q);
+  iray2d_free(sdpa->W_k);
+  iray2d_free(sdpa->W_v);
   free(sdpa);
 }
 Iray2D *transformers_sdpa_forward(ScaledDotProductAttention *sdpa) {
@@ -77,20 +80,20 @@ void transformers_mha_free(MultiHeadAttention *mha) {
   for (size_t i = 0; i < mha->num_heads; i++) {
     transformers_sdpa_free(mha->sdpa[i]);
   }
+  iray2d_free(mha->W_o);
+  free(mha->sdpa);
   free(mha);
 }
 Iray2D *transformers_mha_forward(MultiHeadAttention *mha) {
   Iray2D **sdpa_outputs = (Iray2D **)malloc(sizeof(Iray2D *) * mha->num_heads);
-
   for (size_t i = 0; i < mha->num_heads; i++) {
-    mha->sdpa[i]->query = iray2d_dot(mha->sdpa[i]->query, iray2d_transpose(mha->sdpa[i]->W_q));
-    mha->sdpa[i]->key = iray2d_dot(mha->sdpa[i]->key, iray2d_transpose(mha->sdpa[i]->W_k));
-    mha->sdpa[i]->value = iray2d_dot(mha->sdpa[i]->value, iray2d_transpose(mha->sdpa[i]->W_v));
+    mha->sdpa[i]->query = iray2d_dot(mha->sdpa[i]->query, mha->sdpa[i]->W_q);
+    mha->sdpa[i]->key = iray2d_dot(mha->sdpa[i]->key, mha->sdpa[i]->W_k);
+    mha->sdpa[i]->value = iray2d_dot(mha->sdpa[i]->value, mha->sdpa[i]->W_v);
     sdpa_outputs[i] = transformers_sdpa_forward(mha->sdpa[i]);
   }
   Iray2D *concated = iray2d_concat(sdpa_outputs, mha->num_heads);
-  Iray2D *output = iray2d_dot(concated, mha->W_o);
-
+  Iray2D *output = iray2d_dot(concated, iray2d_transpose(mha->W_o));
   iray2d_free(concated);
   for (size_t i = 0; i < mha->num_heads; i++) {
     iray2d_free(sdpa_outputs[i]);
@@ -134,7 +137,7 @@ Iray1D *transformers_norm_forward(Norm *ln, Iray1D *input, size_t seq_len, size_
     variance /= embed_dim;
 
     for (size_t j = 0; j < embed_dim; j++) {
-        output->data[i * embed_dim + j] = (input->data[i * embed_dim + j] - mean) / sqrtf(variance + 1e-5f);
+        output->data[i * embed_dim + j] = (input->data[i * embed_dim + j] - mean) / sqrtf(variance + 1e-3f);
         output->data[i * embed_dim + j] = output->data[i * embed_dim + j] * ln->gamma[j] + ln->beta[j];
     }
   }
@@ -160,39 +163,40 @@ Encoder *transformers_encoder_alloc(size_t embed_dim, size_t num_heads, size_t s
   return encoder;
 }
 Iray1D *transformers_encoder_forward(Encoder *encoder, Iray2D *input) {
-    for (size_t i = 0; i < encoder->num_heads; i++) {
-        encoder->mha->sdpa[i]->query = input;
-        encoder->mha->sdpa[i]->key = input;
-        encoder->mha->sdpa[i]->value = input;
-    }
-    
-    Iray2D *output = transformers_mha_forward(encoder->mha);
+  ASSERT_MSG(input->rows == encoder->seq_len && input->cols == encoder->embed_dim, "Input dimensions do not match encoder configuration");
 
-    Iray1D *flatted = iray2d_flatten(output);
-    Iray1D *norm_output = transformers_norm_forward(encoder->norm, flatted, encoder->seq_len, encoder->embed_dim);
-    
-    for (size_t i = 0; i < encoder->seq_len; i++) {
-        for (size_t j = 0; j < encoder->embed_dim; j++) {
-            norm_output->data[i * encoder->embed_dim + j] += input->data[i][j];
-        }
-    }
+  for (size_t i = 0; i < encoder->num_heads; i++) {
+      encoder->mha->sdpa[i]->query = input;
+      encoder->mha->sdpa[i]->key = input;
+      encoder->mha->sdpa[i]->value = input;
+  }
+  Iray2D *output = transformers_mha_forward(encoder->mha);
 
-    model_input(encoder->feed_forward, norm_output->data);
-    model_forward(encoder->feed_forward);
+  Iray1D *flatted = iray2d_flatten(output);
+  Iray1D *norm_output = transformers_norm_forward(encoder->norm, flatted, encoder->seq_len, encoder->embed_dim);
+  
+  for (size_t i = 0; i < encoder->seq_len; i++) {
+      for (size_t j = 0; j < encoder->embed_dim; j++) {
+          norm_output->data[i * encoder->embed_dim + j] += input->data[i][j];
+      }
+  }
 
-    float *ff_output = MODEL_OUTPUT(encoder->feed_forward);
+  model_input(encoder->feed_forward, norm_output->data);
+  model_forward(encoder->feed_forward);
 
-    Iray1D *o = iray1d_alloc(encoder->embed_dim);
-    for (size_t i = 0; i < o->rows; i++) {
-      o->data[i] = ff_output[i];
-    }
+  float *ff_output = MODEL_OUTPUT(encoder->feed_forward);
 
-    iray1d_free(norm_output);
-    iray1d_free(flatted);
-    iray2d_free(output);
-    free(ff_output);
+  Iray1D *o = iray1d_alloc(encoder->embed_dim);
+  for (size_t i = 0; i < o->rows; i++) {
+    o->data[i] = ff_output[i];
+  }
 
-    return o;
+  iray1d_free(norm_output);
+  iray1d_free(flatted);
+  iray2d_free(output);
+  free(ff_output);
+
+  return o;
 }
 void transformers_encoder_free(Encoder *encoder) {
   model_free(encoder->feed_forward);

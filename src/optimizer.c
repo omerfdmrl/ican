@@ -58,11 +58,11 @@ void optimizer_batch_gradient_descent(Model *model, Iray2D *inputs, Iray2D *outp
         model_forward(model);
         float *parsed = MODEL_OUTPUT(model);
         bool first = true;
-        float **delta = (float **)malloc(sizeof(float) * model->layer_count);
+        float **delta = (float **)ICAN_MALLOC(sizeof(float) * model->layer_count);
         for (int l = model->layer_count - 1; l >= 0; l--)
         {
             Layer *layer = model->layers[l];
-            delta[l] = (float *)malloc(layer->outputSize * sizeof(float));
+            delta[l] = (float *)ICAN_MALLOC(layer->outputSize * sizeof(float));
             if(layer->weight->rows == 0) {
                 layer->backward(layer, delta[l], rate);
                 continue;
@@ -103,9 +103,9 @@ void optimizer_batch_gradient_descent(Model *model, Iray2D *inputs, Iray2D *outp
         }
         for (size_t l = 0; l < model->layer_count - 1; l++)
         {
-            free(delta[l]);
+            ICAN_FREE(delta[l]);
         }
-        free(delta);
+        ICAN_FREE(delta);
         print_progress(i, inputs->rows, model_cost(model, inputs->data[i], outputs->data[i]));
     }
 }

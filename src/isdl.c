@@ -5,7 +5,7 @@
 #include "ican.h"
 
 ISDLContext *isdl_alloc(int width, int height, bool resizable) {
-    ISDLContext *context = malloc(sizeof(ISDLContext));
+    ISDLContext *context = ICAN_MALLOC(sizeof(ISDLContext));
     ASSERT_MSG(context != NULL, "Memory allocation for ISDLContext failed");
 
     ASSERT_MSG(SDL_Init(SDL_INIT_VIDEO) == 0, "Context could not created");
@@ -23,7 +23,7 @@ void isdl_free(ISDLContext *context) {
     SDL_DestroyRenderer(context->renderer);
     SDL_DestroyWindow(context->window);
     SDL_Quit();
-    free(context);
+    ICAN_FREE(context);
 }
 
 void img_show(ISDLContext *context, Iray3D *img) {

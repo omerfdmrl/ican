@@ -45,6 +45,30 @@ typedef enum{
         }                                                                 \
     }
 
+typedef struct MemoryBlock {
+    void *ptr;
+    size_t size;
+    int line;
+    const char *file;
+    bool is_freed;
+    struct MemoryBlock *next;
+} MemoryBlock;
+
+void *memory_malloc(size_t size, const char *file, int line);
+void memory_free(void *ptr, const char *file, int line);
+void *memory_calloc(size_t count, size_t size, const char *file, int line);
+void memory_leaks();
+
+#ifdef DEBUG
+#define ICAN_MALLOC(size) memory_malloc(size, __FILE__, __LINE__)
+#define ICAN_FREE(ptr) memory_free(ptr, __FILE__, __LINE__)
+#define ICAN_CALLOC(count, size) memory_calloc(count, size, __FILE__, __LINE__)
+#else
+#define ICAN_MALLOC(size) malloc(size)
+#define ICAN_FREE(ptr) free(ptr)
+#define ICAN_CALLOC(count, size) calloc(count, size)
+#endif // DEBUG
+
 typedef struct Iray1D {
     size_t rows;
     float *data;
@@ -197,8 +221,8 @@ typedef struct TransformerMultiHeadAttention {
 
 typedef struct TransformerNorm {
     size_t embed_dim;
-    float *gamma;
-    float *beta;
+    Iray1D *gamma;
+    Iray1D *beta;
 } TransformerNorm;
 
 typedef struct TransformerEmbedding {
@@ -212,7 +236,6 @@ typedef struct TransformerPositionalEncoding {
     size_t embed_dim;
     Iray2D *encoding;
 } TransformerPositionalEncoding;
-
 
 typedef struct TransformerEncoderBlock {
     TransformerMultiHeadAttention *mha;

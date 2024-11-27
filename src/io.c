@@ -54,7 +54,7 @@ void io_export(Model *model, const char *fileName) {
         char *json_string = cJSON_Print(json_model);
         fprintf(fp, "%s", json_string);
         fclose(fp);
-        free(json_string);
+        ICAN_FREE(json_string);
     }
 
     cJSON_Delete(json_model);
@@ -68,13 +68,13 @@ Model *io_import(const char *fileName) {
     long file_size = ftell(fp);
     fseek(fp, 0, SEEK_SET);
     
-    char *buffer = (char *)malloc(file_size + 1);
+    char *buffer = (char *)ICAN_MALLOC(file_size + 1);
     fread(buffer, 1, file_size, fp);
     buffer[file_size] = '\0';
     fclose(fp);
 
     cJSON *json_model = cJSON_Parse(buffer);
-    free(buffer);
+    ICAN_FREE(buffer);
     if (!json_model) {
         printf("Error parsing JSON\n");
         return NULL;

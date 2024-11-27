@@ -4,9 +4,9 @@
 #include "ican.h"
 
 Model *model_alloc(size_t layerCount) {
-	Model *m = malloc(sizeof(Model));
+	Model *m = ICAN_MALLOC(sizeof(Model));
 	m->layer_count = 0;
-	m->layers = malloc(sizeof(Layer *) * layerCount);
+	m->layers = ICAN_MALLOC(sizeof(Layer *) * layerCount);
 	m->step = NULL;
 	return m;
 }
@@ -70,7 +70,9 @@ void model_forward(Model *model) {
 	model->layers[0]->forward(model->layers[0]);
 	for (size_t i = 1; i < model->layer_count; i++)
 	{
-		model->layers[i]->input = model->layers[i - 1]->output;
+		for (size_t j = 0; j < model->layers[i]->inputSize; j++) {
+			model->layers[i]->input->data[j] = model->layers[i - 1]->output->data[j];
+		}
 		model->layers[i]->forward(model->layers[i]);
 	}
 }
@@ -143,8 +145,8 @@ void model_free(Model *model) {
 	{
 		layer_free(model->layers[i]);
 	}
-	free(model->layers);
-	free(model);
+	ICAN_FREE(model->layers);
+	ICAN_FREE(model);
 }
 
 #endif // !MODEL_H

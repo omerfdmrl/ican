@@ -5,7 +5,7 @@
 #include "ican.h" 
 
 Tokenizer *tokenizer_alloc() {
-    Tokenizer *tokenizer = (Tokenizer*)malloc(sizeof(Tokenizer));
+    Tokenizer *tokenizer = (Tokenizer*)ICAN_MALLOC(sizeof(Tokenizer));
     tokenizer->vocab = cJSON_CreateObject();
     tokenizer->vocab_size = 0;
     tokenizer->added_tokens = cJSON_CreateArray();
@@ -23,15 +23,15 @@ void tokenizer_free(Tokenizer *tokenizer) {
     cJSON_Delete(tokenizer->added_tokens);
     cJSON_Delete(tokenizer->bpe_rules);
     if(tokenizer->unk_token) {
-        free(tokenizer->unk_token);
+        ICAN_FREE(tokenizer->unk_token);
     }
     if(tokenizer->bos_token) {
-        free(tokenizer->bos_token);
+        ICAN_FREE(tokenizer->bos_token);
     }
     if(tokenizer->eos_token) {
-        free(tokenizer->eos_token);
+        ICAN_FREE(tokenizer->eos_token);
     }
-    free(tokenizer);
+    ICAN_FREE(tokenizer);
 }
 
 void load_vocab_from_json(Tokenizer *tokenizer, const char *file_path) {
@@ -42,7 +42,7 @@ void load_vocab_from_json(Tokenizer *tokenizer, const char *file_path) {
     size_t length = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    char *data = (char *)malloc(length + 1);
+    char *data = (char *)ICAN_MALLOC(length + 1);
     fread(data, 1, length, file);
     data[length] = '\0';
     fclose(file);
@@ -50,7 +50,7 @@ void load_vocab_from_json(Tokenizer *tokenizer, const char *file_path) {
     cJSON_Delete(tokenizer->vocab);
     tokenizer->vocab = cJSON_Parse(data);
     tokenizer->vocab_size = 0; /** Todo: Add vocab size */
-    free(data);
+    ICAN_FREE(data);
 }
 
 void load_bpe_from_text(Tokenizer *tokenizer, const char *file_path) {
@@ -74,7 +74,7 @@ void load_bpe_from_text(Tokenizer *tokenizer, const char *file_path) {
     }
     
     tokenizer->bpe_rule_size = length;
-    free(line);
+    ICAN_FREE(line);
     fclose(file);
 }
 
@@ -86,7 +86,7 @@ void load_tokenizer_config_from_json(Tokenizer *tokenizer, const char *file_path
     size_t length = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    char *data = (char *)malloc(length + 1);
+    char *data = (char *)ICAN_MALLOC(length + 1);
     fread(data, 1, length, file);
     data[length] = '\0';
     fclose(file);
@@ -97,7 +97,7 @@ void load_tokenizer_config_from_json(Tokenizer *tokenizer, const char *file_path
     tokenizer->eos_token = cJSON_GetObjectItem(json, "eos_token")->valuestring;
     tokenizer->max_length = cJSON_GetObjectItem(json, "model_max_length")->valueint;
 
-    free(data);
+    ICAN_FREE(data);
     cJSON_Delete(json);
 }
 
@@ -109,7 +109,7 @@ void load_tokenizer_from_json(Tokenizer *tokenizer, const char *file_path) {
     size_t length = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    char *data = (char *)malloc(length + 1);
+    char *data = (char *)ICAN_MALLOC(length + 1);
     fread(data, 1, length, file);
     data[length] = '\0';
     fclose(file);
@@ -118,7 +118,7 @@ void load_tokenizer_from_json(Tokenizer *tokenizer, const char *file_path) {
     cJSON_Delete(tokenizer->added_tokens);
 
     cJSON *json = cJSON_Parse(data);
-    free(data);
+    ICAN_FREE(data);
 
     ASSERT_MSG(json != NULL, "Json could not parsed");
 
@@ -145,7 +145,7 @@ void load_tokenizer_from_json(Tokenizer *tokenizer, const char *file_path) {
         char *second = strtok(NULL, " ");
 
         cJSON_AddItemToObject(tokenizer->bpe_rules, first, cJSON_CreateString(second));
-        free(pair);
+        ICAN_FREE(pair);
     }
     tokenizer->unk_token = cJSON_GetObjectItem(model, "unk_token")->valuestring;
 
@@ -173,7 +173,7 @@ bool match_token_with_properties(const char *token, cJSON *properties) {
     }
 
     bool match = (strcmp(temp, content->valuestring) == 0);
-    free(temp);
+    ICAN_FREE(temp);
     return match;
 }
 
@@ -207,7 +207,7 @@ Iray1D *fits_on_text(Tokenizer *tokenizer, const char *text) {
         index++;
         token = strtok(NULL, " ");
     }
-    free(temp);
+    ICAN_FREE(temp);
     return output;
 }
 

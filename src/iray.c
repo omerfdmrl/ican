@@ -5,11 +5,11 @@
 #include "ican.h"
 
 Iray1D *iray1d_alloc(size_t rows) {
-    Iray1D *iray = malloc(sizeof(Iray1D));
+    Iray1D *iray = ICAN_MALLOC(sizeof(Iray1D));
     ASSERT_MSG(iray != NULL, "Failed to allocate memory");
 
     iray->rows = rows;
-    iray->data = malloc(rows * sizeof(float));
+    iray->data = ICAN_MALLOC(rows * sizeof(float));
     ASSERT_MSG(iray->data != NULL, "Failed to allocate memory for data");
 
     return iray;
@@ -17,22 +17,22 @@ Iray1D *iray1d_alloc(size_t rows) {
 
 void iray1d_free(Iray1D *iray) {
     if(iray != NULL) {
-        free(iray->data);
-        free(iray);
+        ICAN_FREE(iray->data);
+        ICAN_FREE(iray);
     }
 }
 
 Iray2D *iray2d_alloc(size_t rows, size_t cols) {
-    Iray2D *iray = malloc(sizeof(Iray2D));
+    Iray2D *iray = ICAN_MALLOC(sizeof(Iray2D));
     ASSERT_MSG(iray != NULL, "Failed to allocate memory");
 
     iray->rows = rows;
     iray->cols = cols;
-    iray->data = malloc(rows * sizeof(float *));
+    iray->data = ICAN_MALLOC(rows * sizeof(float *));
     ASSERT_MSG(iray->data != NULL, "Failed to allocate memory for data");
 
     for (size_t i = 0; i < rows; i++) {
-        iray->data[i] = malloc(cols * sizeof(float));
+        iray->data[i] = ICAN_MALLOC(cols * sizeof(float));
         ASSERT_MSG(iray->data != NULL, "Failed to allocate memory for data");
     }
     
@@ -43,29 +43,29 @@ Iray2D *iray2d_alloc(size_t rows, size_t cols) {
 void iray2d_free(Iray2D *iray) {
     if(iray != NULL) {
         for (size_t i = 0; i < iray->rows; i++) {
-            free(iray->data[i]);
+            ICAN_FREE(iray->data[i]);
         }
-        free(iray->data);
-        free(iray);
+        ICAN_FREE(iray->data);
+        ICAN_FREE(iray);
     }
 }
 
 Iray3D *iray3d_alloc(size_t rows, size_t cols, size_t depth) {
-    Iray3D *iray = malloc(sizeof(Iray3D));
+    Iray3D *iray = ICAN_MALLOC(sizeof(Iray3D));
     ASSERT_MSG(iray != NULL, "Failed to allocate memory");
 
     iray->rows = rows;
     iray->cols = cols;
     iray->depth = depth;
-    iray->data = malloc(rows * sizeof(float **));
+    iray->data = ICAN_MALLOC(rows * sizeof(float **));
     ASSERT_MSG(iray->data != NULL, "Failed to allocate memory for data");
 
     for (size_t i = 0; i < rows; i++) {
-        iray->data[i] = malloc(cols * sizeof(float *));
+        iray->data[i] = ICAN_MALLOC(cols * sizeof(float *));
         ASSERT_MSG(iray->data[i] != NULL, "Failed to allocate memory for data");
 
         for (size_t j = 0; j < cols; j++) {
-            iray->data[i][j] = malloc(depth * sizeof(float));
+            iray->data[i][j] = ICAN_MALLOC(depth * sizeof(float));
             ASSERT_MSG(iray->data[i][j], "Failed to allocate memory for data");
         }
         
@@ -77,12 +77,12 @@ void iray3d_free(Iray3D *iray) {
     if(iray != NULL) {
         for (size_t i = 0; i < iray->rows; i++) {
             for (size_t j = 0; j < iray->cols; j++) {
-                free(iray->data[i][j]);
+                ICAN_FREE(iray->data[i][j]);
             }
-            free(iray->data[i]);
+            ICAN_FREE(iray->data[i]);
         }
-        free(iray->data);
-        free(iray);
+        ICAN_FREE(iray->data);
+        ICAN_FREE(iray);
     }
 }
 

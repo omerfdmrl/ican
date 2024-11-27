@@ -5,7 +5,7 @@
 #include "ican.h"
 
 Layer *layer_alloc(LayerNames name, size_t inputSize, size_t outputSize, size_t paramsSize, void (*forward)(Layer *layer), void (*backward)(Layer *layer, float *delta, float rate)) {
-	Layer *layer = malloc(sizeof(Layer));
+	Layer *layer = ICAN_MALLOC(sizeof(Layer));
     layer->name = name;
     layer->inputSize = inputSize;
     layer->outputSize = outputSize;
@@ -25,7 +25,7 @@ void layer_free(Layer *layer) {
 	iray1d_free(layer->input);
 	iray1d_free(layer->output);
 	iray2d_free(layer->weight);
-	free(layer);
+	ICAN_FREE(layer);
 }
 
 void layer_print(Layer *layer) {
@@ -333,7 +333,7 @@ void layer_batch_normalization_backward(Layer *layer, float *delta, float rate) 
         input->data[i] += rate * dinput;
     }
 
-    free(beta);
+    ICAN_FREE(beta);
 }
 
 Layer *layer_dense(size_t inputSize, size_t outputSize) {

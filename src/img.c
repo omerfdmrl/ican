@@ -50,9 +50,9 @@ Iray3D *img_read_png(FILE *fp, ImgTypes type) {
 
     png_read_update_info(png, info);
 
-    row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
+    row_pointers = (png_bytep*)ICAN_MALLOC(sizeof(png_bytep) * height);
     for(int y = 0; y < height; y++) {
-        row_pointers[y] = (png_byte*)malloc(png_get_rowbytes(png,info));
+        row_pointers[y] = (png_byte*)ICAN_MALLOC(png_get_rowbytes(png,info));
     }
 
     png_read_image(png, row_pointers);
@@ -82,9 +82,9 @@ Iray3D *img_read_png(FILE *fp, ImgTypes type) {
         }
     }
     for(int y = 0; y < height; y++) {
-        free(row_pointers[y]);
+        ICAN_FREE(row_pointers[y]);
     }
-    free(row_pointers);
+    ICAN_FREE(row_pointers);
     return output;
 }
 
@@ -229,7 +229,7 @@ Iray3D **imgs_read(const char *folderPath, size_t count, ImgTypes type) {
         }
     }
     ASSERT_MSG(file_count >= count, "Count is bigger than file count");
-    Iray3D **output = malloc(sizeof(Iray3D *) * count);
+    Iray3D **output = ICAN_MALLOC(sizeof(Iray3D *) * count);
     size_t i = 0;
     rewinddir(dir);
     while ((entry = readdir(dir)) != NULL) {
@@ -262,7 +262,7 @@ Iray3D **imgs_read_wc(const char *folderPath, size_t count, ImgTypes type, Iray3
         }
     }
     ASSERT_MSG(file_count >= count, "Count is bigger than file count");
-    Iray3D **output = malloc(sizeof(Iray3D *) * count);
+    Iray3D **output = ICAN_MALLOC(sizeof(Iray3D *) * count);
     size_t i = 0;
     rewinddir(dir);
     while ((entry = readdir(dir)) != NULL) {
@@ -285,7 +285,7 @@ void imgs_free(Iray3D **imgs, size_t count) {
     for (size_t i = 0; i < count; i++) {
         iray3d_free(imgs[i]);
     }
-    free(imgs);
+    ICAN_FREE(imgs);
 }
 
 void img_write_png(FILE *fp, Iray3D *img) {
@@ -306,7 +306,7 @@ void img_write_png(FILE *fp, Iray3D *img) {
     png_write_info(png, info);
 
     for (size_t y = 0; y < img->rows; y++) {
-        png_bytep row = (png_bytep)malloc(png_get_rowbytes(png, info));
+        png_bytep row = (png_bytep)ICAN_MALLOC(png_get_rowbytes(png, info));
         for (size_t x = 0; x < img->cols; x++) {
             if (img->depth == 1) {
                 row[x * 3] = (png_byte)img->data[y][x][0];
@@ -323,7 +323,7 @@ void img_write_png(FILE *fp, Iray3D *img) {
             }
         }
         png_write_row(png, row);
-        free(row);
+        ICAN_FREE(row);
     }
 
     png_write_end(png, NULL);
@@ -350,7 +350,7 @@ void img_write_jpg(FILE *fp, Iray3D *img) {
 
     JSAMPROW row_pointer[1];
     while (cinfo.next_scanline < cinfo.image_height) {
-        unsigned char *row = (unsigned char *)malloc(cinfo.image_width * cinfo.input_components);
+        unsigned char *row = (unsigned char *)ICAN_MALLOC(cinfo.image_width * cinfo.input_components);
         for (size_t x = 0; x < img->cols; x++) {
             if (img->depth == 1) {
                 row[x * 3] = img->data[cinfo.next_scanline][x][0];
@@ -368,7 +368,7 @@ void img_write_jpg(FILE *fp, Iray3D *img) {
         }
         row_pointer[0] = row;
         jpeg_write_scanlines(&cinfo, row_pointer, 1);
-        free(row);
+        ICAN_FREE(row);
     }
 
     jpeg_finish_compress(&cinfo);

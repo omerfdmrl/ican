@@ -29,7 +29,7 @@ void make_dropout(Iray2D *data, float rate) {
 }
 
 TransformerScaledDotProductAttention *transformer_sdpa_alloc(size_t seq_len, size_t head_dim, size_t embed_dim, bool is_mask) {
-  TransformerScaledDotProductAttention *sdpa = (TransformerScaledDotProductAttention *)malloc(sizeof(TransformerScaledDotProductAttention));
+  TransformerScaledDotProductAttention *sdpa = (TransformerScaledDotProductAttention *)ICAN_MALLOC(sizeof(TransformerScaledDotProductAttention));
   sdpa->query = iray2d_alloc(seq_len, head_dim);
   sdpa->key = iray2d_alloc(seq_len, head_dim);
   sdpa->value = iray2d_alloc(seq_len, head_dim);
@@ -49,7 +49,7 @@ void transformer_sdpa_free(TransformerScaledDotProductAttention *sdpa) {
   iray2d_free(sdpa->W_q);
   iray2d_free(sdpa->W_k);
   iray2d_free(sdpa->W_v);
-  free(sdpa);
+  ICAN_FREE(sdpa);
 }
 Iray2D *transformer_sdpa_forward(TransformerScaledDotProductAttention *sdpa) {
   Iray2D *key_transposed = iray2d_transpose(sdpa->key);
@@ -75,8 +75,8 @@ Iray2D *transformer_sdpa_forward(TransformerScaledDotProductAttention *sdpa) {
 }
 
 TransformerMultiHeadAttention *transformer_mha_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, bool is_mask) {
-  TransformerMultiHeadAttention *mha = (TransformerMultiHeadAttention *)malloc(sizeof(TransformerMultiHeadAttention));
-  mha->sdpa = (TransformerScaledDotProductAttention **)malloc(sizeof(TransformerScaledDotProductAttention *) * num_heads);
+  TransformerMultiHeadAttention *mha = (TransformerMultiHeadAttention *)ICAN_MALLOC(sizeof(TransformerMultiHeadAttention));
+  mha->sdpa = (TransformerScaledDotProductAttention **)ICAN_MALLOC(sizeof(TransformerScaledDotProductAttention *) * num_heads);
   mha->embed_dim = embed_dim;
   mha->num_heads = num_heads;
   mha->seq_len = seq_len;
@@ -92,11 +92,11 @@ void transformer_mha_free(TransformerMultiHeadAttention *mha) {
     transformer_sdpa_free(mha->sdpa[i]);
   }
   iray2d_free(mha->W_o);
-  free(mha->sdpa);
-  free(mha);
+  ICAN_FREE(mha->sdpa);
+  ICAN_FREE(mha);
 }
 Iray2D *transformer_mha_forward(TransformerMultiHeadAttention *mha) {
-  Iray2D **sdpa_outputs = (Iray2D **)malloc(sizeof(Iray2D *) * mha->num_heads);
+  Iray2D **sdpa_outputs = (Iray2D **)ICAN_MALLOC(sizeof(Iray2D *) * mha->num_heads);
   for (size_t i = 0; i < mha->num_heads; i++) {
     mha->sdpa[i]->query = iray2d_dot(mha->sdpa[i]->query, mha->sdpa[i]->W_q);
     mha->sdpa[i]->key = iray2d_dot(mha->sdpa[i]->key, mha->sdpa[i]->W_k);
@@ -109,28 +109,28 @@ Iray2D *transformer_mha_forward(TransformerMultiHeadAttention *mha) {
   for (size_t i = 0; i < mha->num_heads; i++) {
     iray2d_free(sdpa_outputs[i]);
   }
-  free(sdpa_outputs);
+  ICAN_FREE(sdpa_outputs);
 
   return output;
 }
 
 TransformerNorm *transformer_norm_alloc(size_t embed_dim) {
-  TransformerNorm *norm = malloc(sizeof(TransformerNorm));
+  TransformerNorm *norm = ICAN_MALLOC(sizeof(TransformerNorm));
   norm->embed_dim = embed_dim;
-  norm->gamma = malloc(embed_dim * sizeof(float));
-  norm->beta = malloc(embed_dim * sizeof(float));
+  norm->gamma = iray1d_alloc(embed_dim);
+  norm->beta = iray1d_alloc(embed_dim);
 
   for (size_t i = 0; i < embed_dim; i++) {
-      norm->gamma[i] = 1.0f;
-      norm->beta[i] = 0.0f;
+      norm->gamma->data[i] = 1.0f;
+      norm->beta->data[i] = 0.0f;
   }
 
   return norm;
 }
 void transformer_norm_free(TransformerNorm *norm) {
-  free(norm->gamma);
-  free(norm->beta);
-  free(norm);
+  iray1d_free(norm->gamma);
+  iray1d_free(norm->beta);
+  ICAN_FREE(norm);
 }
 Iray2D *transformer_norm_forward(TransformerNorm *ln, Iray2D *input, size_t seq_len, size_t embed_dim) {
   Iray2D *output = iray2d_alloc(seq_len, embed_dim);
@@ -149,8 +149,8 @@ Iray2D *transformer_norm_forward(TransformerNorm *ln, Iray2D *input, size_t seq_
     variance /= embed_dim;
 
     for (size_t j = 0; j < embed_dim; j++) {
-        output->data[i][j] = (input->data[i][j] - mean) / sqrtf(variance + 1e-3f);
-        output->data[i][j] = output->data[i][j] * ln->gamma[j] + ln->beta[j];
+        output->data[i][j] = (input->data[i][j] - mean) / sqrtf(variance + 1e-6f);
+        output->data[i][j] = output->data[i][j] * ln->gamma->data[j] + ln->beta->data[j];
     }
   }
 
@@ -158,7 +158,7 @@ Iray2D *transformer_norm_forward(TransformerNorm *ln, Iray2D *input, size_t seq_
 }
 
 TransformerEncoderBlock *transformer_encoder_block_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, float dropout) {
-  TransformerEncoderBlock *encoder = (TransformerEncoderBlock *)malloc(sizeof(TransformerEncoderBlock));
+  TransformerEncoderBlock *encoder = (TransformerEncoderBlock *)ICAN_MALLOC(sizeof(TransformerEncoderBlock));
   encoder->mha = transformer_mha_alloc(embed_dim, num_heads, seq_len, false);
   encoder->norm = transformer_norm_alloc(embed_dim);
   Layer *ld1 = layer_dense(embed_dim, 4 * embed_dim);
@@ -195,13 +195,6 @@ Iray2D *transformer_encoder_block_forward(TransformerEncoderBlock *encoder, Iray
   Iray2D *norm_output = transformer_norm_forward(encoder->norm, output, encoder->seq_len, encoder->embed_dim);
   make_dropout(norm_output, encoder->dropout);
 
-  Iray1D *norm_o_flatted = iray2d_flatten(norm_output);
-
-  model_input(encoder->feed_forward, norm_o_flatted->data);
-  model_forward(encoder->feed_forward);
-
-  float *ff_output = MODEL_OUTPUT(encoder->feed_forward);
-
   Iray2D *ff_layer_output = iray2d_alloc(encoder->seq_len, encoder->embed_dim);
   for (size_t i = 0; i < encoder->seq_len; i++) {
       model_input(encoder->feed_forward, norm_output->data[i]);
@@ -223,10 +216,8 @@ Iray2D *transformer_encoder_block_forward(TransformerEncoderBlock *encoder, Iray
   make_dropout(norm2_output, encoder->dropout);
 
   iray2d_free(norm_output);
-  iray1d_free(norm_o_flatted);
   iray2d_free(output);
   iray2d_free(ff_layer_output);
-  free(ff_output);
 
   return norm2_output;
 }
@@ -234,11 +225,11 @@ void transformer_encoder_block_free(TransformerEncoderBlock *encoder) {
   model_free(encoder->feed_forward);
   transformer_mha_free(encoder->mha);
   transformer_norm_free(encoder->norm);
-  free(encoder);
+  ICAN_FREE(encoder);
 }
 
 TransformerEmbedding *transformer_embedding_alloc(size_t vocab_size, size_t embed_dim) {
-  TransformerEmbedding *embedding = (TransformerEmbedding *)malloc(sizeof(TransformerEmbedding));
+  TransformerEmbedding *embedding = (TransformerEmbedding *)ICAN_MALLOC(sizeof(TransformerEmbedding));
   embedding->embed_dim = embed_dim;
   embedding->vocab_size = vocab_size;
   embedding->W = iray2d_alloc(vocab_size, embed_dim);
@@ -252,7 +243,7 @@ TransformerEmbedding *transformer_embedding_alloc(size_t vocab_size, size_t embe
 }
 void transformer_embedding_free(TransformerEmbedding *embedding) {
   iray2d_free(embedding->W);
-  free(embedding);
+  ICAN_FREE(embedding);
 }
 Iray2D *transformer_embedding_forward(TransformerEmbedding *embedding, Iray2D *input) {
   Iray2D *output = iray2d_alloc(input->rows, input->cols);
@@ -265,7 +256,7 @@ Iray2D *transformer_embedding_forward(TransformerEmbedding *embedding, Iray2D *i
 }
 
 TransformerPositionalEncoding *transformer_positional_encoding_alloc(size_t seq_len, size_t embed_dim) {
-  TransformerPositionalEncoding *pe = (TransformerPositionalEncoding *)malloc(sizeof(TransformerPositionalEncoding));
+  TransformerPositionalEncoding *pe = (TransformerPositionalEncoding *)ICAN_MALLOC(sizeof(TransformerPositionalEncoding));
   pe->embed_dim = embed_dim;
   pe->seq_len = seq_len;
   pe->encoding = iray2d_alloc(seq_len, embed_dim);
@@ -283,7 +274,8 @@ TransformerPositionalEncoding *transformer_positional_encoding_alloc(size_t seq_
   return pe;
 }
 void transformer_positional_encoding_free(TransformerPositionalEncoding *pe) {
-  free(pe);
+  iray2d_free(pe->encoding);
+  ICAN_FREE(pe);
 }
 Iray2D *transformer_positional_encoding_forward(TransformerPositionalEncoding *pe, Iray2D *input) {
   Iray2D *output = iray2d_alloc(input->rows, input->cols);
@@ -296,10 +288,10 @@ Iray2D *transformer_positional_encoding_forward(TransformerPositionalEncoding *p
 }
 
 TransformerEncoder *transformer_encoder_alloc(size_t seq_len, size_t vocab_size, size_t embed_dim, size_t num_heads, size_t num_blocks, float dropout) {
-  TransformerEncoder *encoder = (TransformerEncoder *)malloc(sizeof(TransformerEncoder));
+  TransformerEncoder *encoder = (TransformerEncoder *)ICAN_MALLOC(sizeof(TransformerEncoder));
   encoder->positional_encoding = transformer_positional_encoding_alloc(seq_len, embed_dim);
   encoder->embedding = transformer_embedding_alloc(vocab_size, embed_dim);
-  encoder->blocks = (TransformerEncoderBlock **)malloc(sizeof(TransformerEncoderBlock *) * num_blocks);
+  encoder->blocks = (TransformerEncoderBlock **)ICAN_MALLOC(sizeof(TransformerEncoderBlock *) * num_blocks);
   for (size_t i = 0; i < num_blocks; i++) {
     encoder->blocks[i] = transformer_encoder_block_alloc(embed_dim, num_heads, seq_len, dropout);
   }
@@ -317,8 +309,8 @@ void transformer_encoder_free(TransformerEncoder *encoder) {
   for (size_t i = 0; i < encoder->num_blocks; i++) {
     transformer_encoder_block_free(encoder->blocks[i]);
   }
-  free(encoder->blocks);
-  free(encoder);
+  ICAN_FREE(encoder->blocks);
+  ICAN_FREE(encoder);
 }
 Iray2D *transformer_encoder_forward(TransformerEncoder *encoder, Iray2D *input) {
   Iray2D *embedding_output = transformer_embedding_forward(encoder->embedding, input);
@@ -332,7 +324,7 @@ Iray2D *transformer_encoder_forward(TransformerEncoder *encoder, Iray2D *input) 
 }
 
 TransformerDecoderBlock *transformer_decoder_block_alloc(size_t embed_dim, size_t num_heads, size_t seq_len, float dropout) {
-  TransformerDecoderBlock *decoder = (TransformerDecoderBlock *)malloc(sizeof(TransformerDecoderBlock));
+  TransformerDecoderBlock *decoder = (TransformerDecoderBlock *)ICAN_MALLOC(sizeof(TransformerDecoderBlock));
   decoder->mha = transformer_mha_alloc(embed_dim, num_heads, seq_len, true);
   decoder->dropout = dropout;
   decoder->norm = transformer_norm_alloc(embed_dim);
@@ -346,7 +338,7 @@ void transformer_decoder_block_free(TransformerDecoderBlock *decoder_block) {
   transformer_mha_free(decoder_block->mha);
   transformer_norm_free(decoder_block->norm);
   transformer_encoder_block_free(decoder_block->encoder_block);
-  free(decoder_block);
+  ICAN_FREE(decoder_block);
 }
 Iray2D *transformer_decoder_block_forward(TransformerDecoderBlock *decoder_block, Iray2D *q, Iray2D *k, Iray2D *v, Iray2D *input, Iray2D *encoder_output) {
   ASSERT_MSG(input->rows == decoder_block->seq_len && input->cols == decoder_block->embed_dim, "Input dimensions do not match decoder configuration");
@@ -379,10 +371,10 @@ Iray2D *transformer_decoder_block_forward(TransformerDecoderBlock *decoder_block
   return encoder_block_output;
 }
 TransformerDecoder *transformer_decoder_alloc(size_t seq_len, size_t vocab_size, size_t embed_dim, size_t num_heads, size_t num_blocks, float dropout) {
-  TransformerDecoder *decoder = (TransformerDecoder *)malloc(sizeof(TransformerDecoder));
+  TransformerDecoder *decoder = (TransformerDecoder *)ICAN_MALLOC(sizeof(TransformerDecoder));
   decoder->positional_encoding = transformer_positional_encoding_alloc(seq_len, embed_dim);
   decoder->embedding = transformer_embedding_alloc(vocab_size, embed_dim);
-  decoder->blocks = (TransformerDecoderBlock **)malloc(sizeof(TransformerDecoderBlock *) * num_blocks);
+  decoder->blocks = (TransformerDecoderBlock **)ICAN_MALLOC(sizeof(TransformerDecoderBlock *) * num_blocks);
   for (size_t i = 0; i < num_blocks; i++) {
     decoder->blocks[i] = transformer_decoder_block_alloc(embed_dim, num_heads, seq_len, dropout);
   }
@@ -400,8 +392,8 @@ void transformer_decoder_free(TransformerDecoder *decoder) {
   for (size_t i = 0; i < decoder->num_blocks; i++) {
     transformer_decoder_block_free(decoder->blocks[i]);
   }
-  free(decoder->blocks);
-  free(decoder);
+  ICAN_FREE(decoder->blocks);
+  ICAN_FREE(decoder);
 }
 Iray2D *transformer_decoder_forward(TransformerDecoder *decoder, Iray2D *input, Iray2D *encoder_output) {
   Iray2D *embedding_output = transformer_embedding_forward(decoder->embedding, input);

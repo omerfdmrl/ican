@@ -81,7 +81,7 @@ Install library to local
     - [ ] HOG
     - [ ] LBP
     - [ ] Neural networks
-      - [x] Initializers
+      - [ ] Initializers
         - [ ] Ones
         - [ ] Random HeUniform
         - [ ] Random Normal

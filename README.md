@@ -35,101 +35,101 @@ Install library to local
 
 ### Roadmap
 
--[ ] Data Structures
-    -[ ] Linked List
-        - [ ] Single linked list
-        - [ ] Double linked list
-        - [ ] Circular linked list
-    - [ ] Stack
-        - [ ] Array-based stack
-        - [ ] Linked list-based stack
-    - [ ] Queue
-        - [ ] Simple queue
-        - [ ] Circular queue
-        - [ ] Priority queue
-        - [ ] Double ended queue
-    - [ ] Tree
-        - [ ] Binary tree
-        - [ ] Binary search tree
-            - [ ] AVL tree
-            - [ ] Red-black tree
-        - [ ] Heap
-            - [ ] Max heap
-            - [ ] Min heap
-        - [ ] Trie
-    - [ ] Hash table
-        - [ ] Open hashing
-        - [ ] Closed hashing
-            - [ ] Linear probing
-            - [ ] Quadratic probing
-            - [ ] Double hashing
+- [ ] Data Structures
+  - [ ] Linked List
+    - [ ] Single linked list
+    - [ ] Double linked list
+    - [ ] Circular linked list
+  - [ ] Stack
+    - [ ] Array-based stack
+    - [ ] Linked list-based stack
+  - [ ] Queue
+    - [ ] Simple queue
+    - [ ] Circular queue
+    - [ ] Priority queue
+    - [ ] Double ended queue
+  - [ ] Tree
+    - [ ] Binary tree
+    - [ ] Binary search tree
+      - [ ] AVL tree
+      - [ ] Red-black tree
+    - [ ] Heap
+      - [ ] Max heap
+      - [ ] Min heap
+    - [ ] Trie
+  - [ ] Hash table
+    - [ ] Open hashing
+    - [ ] Closed hashing
+      - [ ] Linear probing
+      - [ ] Quadratic probing
+      - [ ] Double hashing
 - [ ] Machine Learning
-    - [ ] Supervised learning
-        - [ ] KNN
-        - [ ] SVM
-        - [ ] Linear regression
-        - [ ] Logistic regression
-        - [ ] Decision tree
-        - [ ] Random forest
-        - [ ] GBM
-        - [ ] XGBoost
-        - [ ] AdaBoost
-        - [ ] Naive bayes
-        - [ ] Ridge regression
-        - [ ] Lasso regression
-        - [ ] Neural networks
-            - [x] Initializers
-                - [ ] Ones
-                - [ ] Random HeUniform
-                - [ ] Random Normal
-                - [ ] Random Uniform
-                - [ ] Random Xavier
-                - [ ] Zeros
-            - [ ] Activation
-                - [ ] Sigmoid
-                - [ ] Tanh
-                - [ ] Softmax
-            - [ ] Layers
-                - [ ] Activation
-                - [ ] Dense
-                - [ ] Dropout
-                - [ ] Shuffle
-                - [ ] Input
-                - [ ] Output
-            - [ ] Model
-            - [ ] Optimizer
-                - [ ] Finite Diff
-                - [ ] Gradient Descent
-                    - [ ] Batch Gradient Descent
-                    - [ ] Stochastic Gradient Descent
-                    - [ ] Mini-Batch Gradient Descent
-                - [ ] RMSprop
-                - [ ] Adam
-    - [ ] Unsupervised learning
-        - [ ] K-Means clustering
-        - [ ] Hierarchical clustering
-        - [ ] DBSCAN
-        - [ ] PCA
-        - [ ] t-SNE
-        - [ ] ICA
-        - [ ] GMM
-        - [ ] Autoencoders
-    - [ ] Reinforcement
-        - [ ] Q-Learning
-        - [ ] DQL
-        - [ ] Policy gradient
-        - [ ] Actor-Critic
-        - [ ] PPO
-    - [ ] Deep Learning
-        - [ ] CNN
-            - [ ] CONV
-            - [ ] Max pooling
-            - [ ] Min pooling
-        - [ ] RNN
-        - [ ] LSTM
-        - [ ] GRU
-        - [ ] GAN
-        - [ ] Transformer
-            - [ ] Tokenizer
-            - [ ] Encoder
-            - [ ] Decoder
+  - [ ] Supervised learning
+    - [ ] KNN
+    - [ ] SVM
+    - [ ] Linear regression
+    - [ ] Logistic regression
+    - [ ] Decision tree
+    - [ ] Random forest
+    - [ ] GBM
+    - [ ] XGBoost
+    - [ ] AdaBoost
+    - [ ] Naive bayes
+    - [ ] Ridge regression
+    - [ ] Lasso regression
+    - [ ] Neural networks
+      - [x] Initializers
+        - [ ] Ones
+        - [ ] Random HeUniform
+        - [ ] Random Normal
+        - [ ] Random Uniform
+        - [ ] Random Xavier
+        - [ ] Zeros
+      - [ ] Activation
+        - [ ] Sigmoid
+        - [ ] Tanh
+        - [ ] Softmax
+      - [ ] Layers
+        - [ ] Activation
+        - [ ] Dense
+        - [ ] Dropout
+        - [ ] Shuffle
+        - [ ] Input
+        - [ ] Output
+      - [ ] Model
+      - [ ] Optimizer
+        - [ ] Finite Diff
+        - [ ] Gradient Descent
+          - [ ] Batch Gradient Descent
+          - [ ] Stochastic Gradient Descent
+          - [ ] Mini-Batch Gradient Descent
+        - [ ] RMSprop
+        - [ ] Adam
+  - [ ] Unsupervised learning
+    - [ ] K-Means clustering
+    - [ ] Hierarchical clustering
+    - [ ] DBSCAN
+    - [ ] PCA
+    - [ ] t-SNE
+    - [ ] ICA
+    - [ ] GMM
+    - [ ] Autoencoders
+  - [ ] Reinforcement
+    - [ ] Q-Learning
+    - [ ] DQL
+    - [ ] Policy gradient
+    - [ ] Actor-Critic
+    - [ ] PPO
+  - [ ] Deep Learning
+    - [ ] CNN
+      - [ ] CONV
+      - [ ] Max pooling
+      - [ ] Min pooling
+    - [ ] RNN
+    - [ ] LSTM
+    - [ ] GRU
+    - [ ] GAN
+    - [ ] Transformer
+      - [ ] Tokenizer
+      - [ ] Encoder
+      - [ ] Decoder

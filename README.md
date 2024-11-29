@@ -77,6 +77,9 @@ Install library to local
     - [ ] Naive bayes
     - [ ] Ridge regression
     - [ ] Lasso regression
+    - [ ] Haarcascade
+    - [ ] HOG
+    - [ ] LBP
     - [ ] Neural networks
       - [x] Initializers
         - [ ] Ones

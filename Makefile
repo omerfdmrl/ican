@@ -20,8 +20,8 @@ INCS = $(wildcard $(INC_DIR)/*.h)
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJS_DIR)/%.o)
 
 PREFIX = /usr/local
-INCLUDE_DIR = $(PREFIX)/include
-LIB_DIR = $(PREFIX)/lib
+INCLUDE_DIR = $(PREFIX)/include/ican
+LIB_DIR = $(PREFIX)/lib/ican
 
 all: static shared
 

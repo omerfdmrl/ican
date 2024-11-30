@@ -38,4 +38,8 @@ typedef unsigned long long int int64; // 0-18446744073709551615
 #include "iray.h"
 #endif // ICAN_USE_IRAY
 
+#ifdef ICAN_USE_LINKED_LIST
+#include "data_structure/linked_list.h"
+#endif // !ICAN_USE_LINKED_LIST
+
 #endif // !ICAN_H

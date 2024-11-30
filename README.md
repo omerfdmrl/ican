@@ -37,7 +37,7 @@ Install library to local
 
 - [ ] Data Structures
   - [ ] Linked List
-    - [ ] Single linked list
+    - [x] Single linked list
     - [ ] Double linked list
     - [ ] Circular linked list
   - [ ] Stack

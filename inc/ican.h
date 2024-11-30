@@ -32,8 +32,10 @@ typedef unsigned long long int int64; // 0-18446744073709551615
 #define ICAN_REALLOC realloc
 #endif // !ICAN_REALLOC
 
-#include "iray.h"
-
 #include "logger.h"
+
+#ifdef ICAN_USE_IRAY
+#include "iray.h"
+#endif // ICAN_USE_IRAY
 
 #endif // !ICAN_H

@@ -1,0 +1,34 @@
+--- Benchmark: Add ---
+Memory usage before addition: 49192.0 KB
+Time: 0.004304 seconds
+Memory usage after addition: 57012.0 KB
+
+--- Benchmark: Dot ---
+Memory usage before dot: 49176.0 KB
+Time: 0.016262 seconds
+Memory usage after dot: 61464.0 KB
+
+--- Benchmark: Apply ---
+Memory usage before apply: 61464.0 KB
+Time: 0.208611 seconds
+Memory usage after apply: 78984.0 KB
+
+--- Benchmark: Scale ---
+Memory usage before scale: 63488.0 KB
+Time: 0.001257 seconds
+Memory usage after scale: 63488.0 KB
+
+--- Benchmark: Max ---
+Memory usage before max: 63488.0 KB
+Time: 0.004869 seconds
+Memory usage after max: 63488.0 KB
+
+--- Benchmark: Min ---
+Memory usage before min: 63488.0 KB
+Time: 0.000700 seconds
+Memory usage after min: 63488.0 KB
+
+--- Benchmark: Transpose ---
+Memory usage before transpose: 63488.0 KB
+Time: 0.000007 seconds
+Memory usage after transpose: 63488.0 KB

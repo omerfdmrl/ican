@@ -1,4 +1,5 @@
-#include "ican.h"
+#define ICAN_USE_IRAY
+#include "ican/ican.h"
 
 int main() {
     Iray1D *a = iray1d_alloc(5);

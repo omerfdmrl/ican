@@ -1,0 +1,29 @@
+--- Benchmark: Add ---
+Memory usage: 8312 KB
+Time: 0.015348 seconds
+Memory usage: 12664 KB
+
+--- Benchmark: Dot ---
+Memory usage: 12664 KB
+Time: 0.699769 seconds
+Memory usage: 13132 KB
+
+--- Benchmark: Apply ---
+Memory usage: 17228 KB
+Time: 0.000418 seconds
+Memory usage: 21324 KB
+
+--- Benchmark: Scale ---
+Memory usage: 25420 KB
+Time: 0.000550 seconds
+Memory usage: 29516 KB
+
+--- Benchmark: Max ---
+Memory usage: 29516 KB
+Time: 0.015131 seconds
+Memory usage: 29516 KB
+
+--- Benchmark: Min ---
+Memory usage: 29516 KB
+Time: 0.000178 seconds
+Memory usage: 29516 KB

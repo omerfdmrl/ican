@@ -18,6 +18,52 @@ struct s_iray2d {
 typedef struct s_iray1d Iray1D;
 typedef struct s_iray2d Iray2D;
 
+#ifndef ICAN_IRAY_SIMD
+#define ICAN_IRAY_SIMD 8
+#endif // !ICAN_IRAY_SIMD
+
+#if ICAN_IRAY_SIMD == 64
+    #define ICAN_IRAY_SIMD_align 64
+    #define ICAN_IRAY_SIMD_load_ps _mm512_load_ps
+    #define ICAN_IRAY_SIMD_store_ps _mm512_store_ps
+    #define ICAN_IRAY_SIMD_add_ps _mm512_add_ps
+    #define ICAN_IRAY_SIMD_mul_ps _mm512_mul_ps
+    #define ICAN_IRAY_SIMD_hadd_ps _mm512_hadd_ps
+    #define ICAN_IRAY_SIMD_set1_ps _mm512_set1_ps
+#elif ICAN_IRAY_SIMD == 32
+    #define ICAN_IRAY_SIMD_align 32
+    #define ICAN_IRAY_SIMD_load_ps _mm256_load_ps
+    #define ICAN_IRAY_SIMD_store_ps _mm256_store_ps
+    #define ICAN_IRAY_SIMD_add_ps _mm256_add_ps
+    #define ICAN_IRAY_SIMD_mul_ps _mm256_mul_ps
+    #define ICAN_IRAY_SIMD_hadd_ps _mm256_hadd_ps
+    #define ICAN_IRAY_SIMD_set1_ps _mm256_set1_ps
+#elif ICAN_IRAY_SIMD == 16
+    #define ICAN_IRAY_SIMD_align 64
+    #define ICAN_IRAY_SIMD_load_ps _mm512_load_ps
+    #define ICAN_IRAY_SIMD_store_ps _mm512_store_ps
+    #define ICAN_IRAY_SIMD_add_ps _mm512_add_ps
+    #define ICAN_IRAY_SIMD_mul_ps _mm512_mul_ps
+    #define ICAN_IRAY_SIMD_hadd_ps _mm512_hadd_ps
+    #define ICAN_IRAY_SIMD_set1_ps _mm512_set1_ps
+#elif ICAN_IRAY_SIMD == 8
+    #define ICAN_IRAY_SIMD_align 32
+    #define ICAN_IRAY_SIMD_load_ps _mm256_load_ps
+    #define ICAN_IRAY_SIMD_store_ps _mm256_store_ps
+    #define ICAN_IRAY_SIMD_add_ps _mm256_add_ps
+    #define ICAN_IRAY_SIMD_mul_ps _mm256_mul_ps
+    #define ICAN_IRAY_SIMD_hadd_ps _mm256_hadd_ps
+    #define ICAN_IRAY_SIMD_set1_ps _mm256_set1_ps
+#elif ICAN_IRAY_SIMD == 4
+    #define ICAN_IRAY_SIMD_align 16
+    #define ICAN_IRAY_SIMD_load_ps _mm128_load_ps
+    #define ICAN_IRAY_SIMD_store_ps _mm128_store_ps
+    #define ICAN_IRAY_SIMD_add_ps _mm128_add_ps
+    #define ICAN_IRAY_SIMD_mul_ps _mm128_mul_ps
+    #define ICAN_IRAY_SIMD_hadd_ps _mm128_hadd_ps
+    #define ICAN_IRAY_SIMD_set1_ps _mm128_set1_ps
+#endif
+
 Iray2D *iray2d_alloc(int64 rows, int64 cols);
 void iray2d_free(Iray2D *iray);
 Iray2D *iray2d_add(Iray2D *A, Iray2D *B);

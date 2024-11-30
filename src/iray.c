@@ -5,7 +5,7 @@ Iray2D *iray2d_alloc(int64 rows, int64 cols) {
     ASSERT(iray != NULL);
     iray->rows = rows;
     iray->cols = cols;
-    iray->data = (float *) aligned_alloc(32, sizeof(float) * rows * cols);
+    iray->data = (float *) aligned_alloc(ICAN_IRAY_SIMD_align, sizeof(float) * rows * cols);
     ASSERT(iray->data != NULL);
     return iray;
 }
@@ -26,13 +26,13 @@ Iray2D *iray2d_add(Iray2D *A, Iray2D *B) {
     
     #pragma omp parallel for collapse(2)
     for (size_t i = 0; i < A->rows; i++) {
-        for (size_t j = 0; j < A->cols; j += 8) {
-            size_t vec_end = (j + 8 > A->cols) ? A->cols : j + 8;
-            if (vec_end - j == 8) {
-                __m256 vec_a = _mm256_load_ps(&A->data[i * A->cols + j]);
-                __m256 vec_b = _mm256_load_ps(&B->data[i * B->cols + j]);
-                __m256 vec_sum = _mm256_add_ps(vec_a, vec_b);
-                _mm256_store_ps(&O->data[i * O->cols + j], vec_sum);
+        for (size_t j = 0; j < A->cols; j += ICAN_IRAY_SIMD) {
+            size_t vec_end = (j + ICAN_IRAY_SIMD > A->cols) ? A->cols : j + ICAN_IRAY_SIMD;
+            if (vec_end - j == ICAN_IRAY_SIMD) {
+                __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                __m256 vec_b = ICAN_IRAY_SIMD_load_ps(&B->data[i * B->cols + j]);
+                __m256 vec_sum = ICAN_IRAY_SIMD_add_ps(vec_a, vec_b);
+                ICAN_IRAY_SIMD_store_ps(&O->data[i * O->cols + j], vec_sum);
             } else {
                 for (size_t k = j; k < vec_end; k++) {
                     O->data[i * O->cols + k] = A->data[i * A->cols + k] + B->data[i * B->cols + k];
@@ -51,16 +51,16 @@ Iray2D *iray2d_dot(Iray2D *A, Iray2D *B) {
     for (size_t i = 0; i < A->rows; i++) {
         for (size_t j = 0; j < B->cols; j++) {
             O->data[i * O->cols + j] = 0.0f;
-            for (size_t k = 0; k < A->cols; k+=8) {
-                size_t vec_end = (k + 8 > A->cols) ? A->cols : k + 8;
-                if (vec_end - k == 8) {
-                    __m256 vec_a = _mm256_load_ps(&A->data[i * A->cols + k]);
-                    __m256 vec_b = _mm256_load_ps(&B->data[k * B->cols + j]);
-                    __m256 vec_p = _mm256_mul_ps(vec_a, vec_b);
-                    __m256 vec_s = _mm256_hadd_ps(vec_p, vec_p);
-                    vec_s = _mm256_hadd_ps(vec_s, vec_s);
-                    float result[8];
-                    _mm256_store_ps(result, vec_s);
+            for (size_t k = 0; k < A->cols; k+=ICAN_IRAY_SIMD) {
+                size_t vec_end = (k + ICAN_IRAY_SIMD > A->cols) ? A->cols : k + ICAN_IRAY_SIMD;
+                if (vec_end - k == ICAN_IRAY_SIMD) {
+                    __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i * A->cols + k]);
+                    __m256 vec_b = ICAN_IRAY_SIMD_load_ps(&B->data[k * B->cols + j]);
+                    __m256 vec_p = ICAN_IRAY_SIMD_mul_ps(vec_a, vec_b);
+                    __m256 vec_s = ICAN_IRAY_SIMD_hadd_ps(vec_p, vec_p);
+                    vec_s = ICAN_IRAY_SIMD_hadd_ps(vec_s, vec_s);
+                    float result[ICAN_IRAY_SIMD];
+                    ICAN_IRAY_SIMD_store_ps(result, vec_s);
                     O->data[i * O->cols + j] += result[0] + result[4];
                 } else {
                     for (size_t l = k; l < vec_end; l++) {
@@ -79,15 +79,15 @@ Iray2D *iray2d_apply(Iray2D *A, float (*func)(float)) {
     
     #pragma omp parallel for collapse(2)
     for (size_t i = 0; i < A->rows; i++) {
-        for (size_t j = 0; j < A->cols; j += 8) {
-            size_t vec_end = (j + 8 > A->cols) ? A->cols : j + 8;
-            if (vec_end - j == 8) {
-                __m256 vec_a = _mm256_load_ps(&A->data[i * A->cols + j]);
-                for (size_t k = 0; k < 8; k++) {
+        for (size_t j = 0; j < A->cols; j += ICAN_IRAY_SIMD) {
+            size_t vec_end = (j + ICAN_IRAY_SIMD > A->cols) ? A->cols : j + ICAN_IRAY_SIMD;
+            if (vec_end - j == ICAN_IRAY_SIMD) {
+                __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                for (size_t k = 0; k < ICAN_IRAY_SIMD; k++) {
                     float val = func(((float*)&vec_a)[k]);
                     ((float*)&vec_a)[k] = val;
                 }
-                _mm256_store_ps(&O->data[i * O->cols + j], vec_a);
+                ICAN_IRAY_SIMD_store_ps(&O->data[i * O->cols + j], vec_a);
             } else {
                 for (size_t k = j; k < vec_end; k++) {
                     O->data[i * O->cols + k] = func(A->data[i * A->cols + k]);
@@ -99,17 +99,17 @@ Iray2D *iray2d_apply(Iray2D *A, float (*func)(float)) {
 }
 
 Iray2D *iray2d_scale(Iray2D *A, float scalar) {
-    __m256 vec_scalar = _mm256_set1_ps(scalar);
+    __m256 vec_scalar = ICAN_IRAY_SIMD_set1_ps(scalar);
     Iray2D *O = iray2d_alloc(A->rows, A->cols);
     
     #pragma omp parallel for collapse(2)
     for (size_t i = 0; i < A->rows; i++) {
-        for (size_t j = 0; j < A->cols; j += 8) {
-            size_t vec_end = (j + 8 > A->cols) ? A->cols : j + 8;
-            if (vec_end - j == 8) {
-                __m256 vec_a = _mm256_load_ps(&A->data[i * A->cols + j]);
-                __m256 vec_o = _mm256_mul_ps(vec_a, vec_scalar);
-                _mm256_store_ps(&O->data[i * O->cols + j], vec_o);
+        for (size_t j = 0; j < A->cols; j += ICAN_IRAY_SIMD) {
+            size_t vec_end = (j + ICAN_IRAY_SIMD > A->cols) ? A->cols : j + ICAN_IRAY_SIMD;
+            if (vec_end - j == ICAN_IRAY_SIMD) {
+                __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                __m256 vec_o = ICAN_IRAY_SIMD_mul_ps(vec_a, vec_scalar);
+                ICAN_IRAY_SIMD_store_ps(&O->data[i * O->cols + j], vec_o);
             } else {
                 for (size_t k = j; k < vec_end; k++) {
                     O->data[i * O->cols + k] = A->data[i * A->cols + k] * scalar;
@@ -121,14 +121,14 @@ Iray2D *iray2d_scale(Iray2D *A, float scalar) {
 }
 
 void iray2d_fill(Iray2D *A, float data) {
-    __m256 vec_data = _mm256_set1_ps(data);
+    __m256 vec_data = ICAN_IRAY_SIMD_set1_ps(data);
     
     #pragma omp parallel for collapse(2)
     for (size_t i = 0; i < A->rows; i++) {
-        for (size_t j = 0; j < A->cols; j += 8) {
-            size_t vec_end = (j + 8 > A->cols) ? A->cols : j + 8;
-            if (vec_end - j == 8) {
-                _mm256_store_ps(&A->data[i * A->cols + j], vec_data);
+        for (size_t j = 0; j < A->cols; j += ICAN_IRAY_SIMD) {
+            size_t vec_end = (j + ICAN_IRAY_SIMD > A->cols) ? A->cols : j + ICAN_IRAY_SIMD;
+            if (vec_end - j == ICAN_IRAY_SIMD) {
+                ICAN_IRAY_SIMD_store_ps(&A->data[i * A->cols + j], vec_data);
             } else {
                 for (size_t k = j; k < vec_end; k++) {
                     A->data[i * A->cols + k] = data;
@@ -142,11 +142,11 @@ float iray2d_max(Iray2D *A) {
     float max_value = A->data[0];
     #pragma omp parallel for reduction(max:max_value) collapse(2)
     for (size_t i = 0; i < A->rows; i++) {
-        for (size_t j = 0; j < A->cols; j += 8) {
-            size_t vec_end = (j + 8 > A->cols) ? A->cols : j + 8;
-            if (vec_end - j == 8) {
-                __m256 vec_a = _mm256_load_ps(&A->data[i * A->cols + j]);
-                for (size_t k = 0; k < 8; k++) {
+        for (size_t j = 0; j < A->cols; j += ICAN_IRAY_SIMD) {
+            size_t vec_end = (j + ICAN_IRAY_SIMD > A->cols) ? A->cols : j + ICAN_IRAY_SIMD;
+            if (vec_end - j == ICAN_IRAY_SIMD) {
+                __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                for (size_t k = 0; k < ICAN_IRAY_SIMD; k++) {
                     max_value = fmaxf(max_value, ((float*)&vec_a)[k]);
                 }
             } else {
@@ -163,11 +163,11 @@ float iray2d_min(Iray2D *A) {
     float min_value = A->data[0];
     #pragma omp parallel for reduction(min:min_value) collapse(2)
     for (size_t i = 0; i < A->rows; i++) {
-        for (size_t j = 0; j < A->cols; j += 8) {
-            size_t vec_end = (j + 8 > A->cols) ? A->cols : j + 8;
-            if (vec_end - j == 8) {
-                __m256 vec_a = _mm256_load_ps(&A->data[i * A->cols + j]);
-                for (size_t k = 0; k < 8; k++) {
+        for (size_t j = 0; j < A->cols; j += ICAN_IRAY_SIMD) {
+            size_t vec_end = (j + ICAN_IRAY_SIMD > A->cols) ? A->cols : j + ICAN_IRAY_SIMD;
+            if (vec_end - j == ICAN_IRAY_SIMD) {
+                __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                for (size_t k = 0; k < ICAN_IRAY_SIMD; k++) {
                     min_value = fminf(min_value, ((float*)&vec_a)[k]);
                 }
             } else {
@@ -191,10 +191,10 @@ Iray2D *iray2d_transpose(Iray2D *A) {
     #pragma omp parallel for collapse(2)
     for (size_t i = 0; i < A->rows; i++) {
         for (size_t j = 0; j < A->cols; j++) {
-            size_t vec_end = (j + 8 > A->cols) ? A->cols : j + 8;
-            if (vec_end - j == 8) {
-                __m256 vec_a = _mm256_load_ps(&A->data[i * A->cols + j]);
-                for (size_t k = 0; k < 8; k++) {
+            size_t vec_end = (j + ICAN_IRAY_SIMD > A->cols) ? A->cols : j + ICAN_IRAY_SIMD;
+            if (vec_end - j == ICAN_IRAY_SIMD) {
+                __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                for (size_t k = 0; k < ICAN_IRAY_SIMD; k++) {
                     O->data[(j + k) * O->cols + i] = ((float *)&vec_a)[k];
                 }
             }else {
@@ -220,7 +220,7 @@ Iray1D *iray1d_alloc(int64 rows) {
     Iray1D *iray = (Iray1D *) ICAN_MALLOC(sizeof(Iray1D));
     ASSERT(iray != NULL);
     iray->rows = rows;
-    iray->data = (float *) aligned_alloc(32, sizeof(float) * rows);
+    iray->data = (float *) aligned_alloc(ICAN_IRAY_SIMD_align, sizeof(float) * rows);
     ASSERT(iray->data != NULL);
     return iray;
 }
@@ -239,13 +239,13 @@ Iray1D *iray1d_add(Iray1D *A, Iray1D *B) {
     Iray1D *O = iray1d_alloc(A->rows);
 
     #pragma omp parallel for
-    for (size_t i = 0; i < A->rows; i+=8) {
-        size_t vec_end = (i + 8 > A->rows) ? A->rows : i + 8;
-        if (vec_end - i == 8) {
-            __m256 vec_a = _mm256_load_ps(&A->data[i]);
-            __m256 vec_b = _mm256_load_ps(&B->data[i]);
-            __m256 vec_sum = _mm256_add_ps(vec_a, vec_b);
-            _mm256_store_ps(&O->data[i], vec_sum);
+    for (size_t i = 0; i < A->rows; i+=ICAN_IRAY_SIMD) {
+        size_t vec_end = (i + ICAN_IRAY_SIMD > A->rows) ? A->rows : i + ICAN_IRAY_SIMD;
+        if (vec_end - i == ICAN_IRAY_SIMD) {
+            __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i]);
+            __m256 vec_b = ICAN_IRAY_SIMD_load_ps(&B->data[i]);
+            __m256 vec_sum = ICAN_IRAY_SIMD_add_ps(vec_a, vec_b);
+            ICAN_IRAY_SIMD_store_ps(&O->data[i], vec_sum);
         } else {
             for (size_t k = i; k < vec_end; k++) {
                 O->data[k] = A->data[k] + B->data[k];
@@ -260,13 +260,13 @@ Iray1D *iray1d_dot(Iray1D *A, Iray1D *B) {
     Iray1D *O = iray1d_alloc(A->rows);
 
     #pragma omp parallel for
-    for (size_t i = 0; i < A->rows; i+=8) {
-        size_t vec_end = (i + 8 > A->rows) ? A->rows : i + 8;
-        if (vec_end - i == 8) {
-            __m256 vec_a = _mm256_load_ps(&A->data[i]);
-            __m256 vec_b = _mm256_load_ps(&B->data[i]);
-            __m256 vec_p = _mm256_mul_ps(vec_a, vec_b);
-            _mm256_store_ps(&O->data[i], vec_p);
+    for (size_t i = 0; i < A->rows; i+=ICAN_IRAY_SIMD) {
+        size_t vec_end = (i + ICAN_IRAY_SIMD > A->rows) ? A->rows : i + ICAN_IRAY_SIMD;
+        if (vec_end - i == ICAN_IRAY_SIMD) {
+            __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i]);
+            __m256 vec_b = ICAN_IRAY_SIMD_load_ps(&B->data[i]);
+            __m256 vec_p = ICAN_IRAY_SIMD_mul_ps(vec_a, vec_b);
+            ICAN_IRAY_SIMD_store_ps(&O->data[i], vec_p);
         } else {
             for (size_t k = i; k < vec_end; k++) {
                 O->data[k] = A->data[k] * B->data[k];
@@ -277,13 +277,13 @@ Iray1D *iray1d_dot(Iray1D *A, Iray1D *B) {
 }
 
 void iray1d_fill(Iray1D *A, float data) {
-    __m256 vec_data = _mm256_set1_ps(data);
+    __m256 vec_data = ICAN_IRAY_SIMD_set1_ps(data);
 
     #pragma omp parallel for
-    for (size_t i = 0; i < A->rows; i+=8) {
-        size_t vec_end = (i + 8 > A->rows) ? A->rows : i + 8;
-        if (vec_end - i == 8) {
-            _mm256_store_ps(&A->data[i], vec_data);
+    for (size_t i = 0; i < A->rows; i+=ICAN_IRAY_SIMD) {
+        size_t vec_end = (i + ICAN_IRAY_SIMD > A->rows) ? A->rows : i + ICAN_IRAY_SIMD;
+        if (vec_end - i == ICAN_IRAY_SIMD) {
+            ICAN_IRAY_SIMD_store_ps(&A->data[i], vec_data);
         }else {
             for (size_t k = i; k < vec_end; k++) {
                 A->data[k] = data;
@@ -296,15 +296,15 @@ Iray1D *iray1d_apply(Iray1D *A, float (*func)(float)) {
     Iray1D *O = iray1d_alloc(A->rows);
 
     #pragma omp parallel for
-    for (size_t i = 0; i < A->rows; i+=8) {
-        size_t vec_end = (i + 8 > A->rows) ? A->rows : i + 8;
-        if (vec_end - i == 8) {
-            __m256 vec_a = _mm256_load_ps(&A->data[i]);
-            for (size_t k = 0; k < 8; k++) {
+    for (size_t i = 0; i < A->rows; i+=ICAN_IRAY_SIMD) {
+        size_t vec_end = (i + ICAN_IRAY_SIMD > A->rows) ? A->rows : i + ICAN_IRAY_SIMD;
+        if (vec_end - i == ICAN_IRAY_SIMD) {
+            __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i]);
+            for (size_t k = 0; k < ICAN_IRAY_SIMD; k++) {
                 float val = func(((float*)&vec_a)[k]);
                 ((float*)&vec_a)[k] = val;
             }
-            _mm256_store_ps(&O->data[i], vec_a);
+            ICAN_IRAY_SIMD_store_ps(&O->data[i], vec_a);
         }else {
             for (size_t k = i; k < vec_end; k++) {
                 O->data[k] = func(A->data[k]);
@@ -315,16 +315,16 @@ Iray1D *iray1d_apply(Iray1D *A, float (*func)(float)) {
 }
 
 Iray1D *iray1d_scale(Iray1D *A, float scalar) {
-    __m256 vec_scalar = _mm256_set1_ps(scalar);
+    __m256 vec_scalar = ICAN_IRAY_SIMD_set1_ps(scalar);
     Iray1D *O = iray1d_alloc(A->rows);
 
     #pragma omp parallel for
-    for (size_t i = 0; i < A->rows; i+=8) {
-        size_t vec_end = (i + 8 > A->rows) ? A->rows : i + 8;
-        if (vec_end - i == 8) {
-            __m256 vec_a = _mm256_load_ps(&A->data[i]);
-            __m256 vec_o = _mm256_mul_ps(vec_a, vec_scalar);
-            _mm256_store_ps(&O->data[i], vec_o);
+    for (size_t i = 0; i < A->rows; i+=ICAN_IRAY_SIMD) {
+        size_t vec_end = (i + ICAN_IRAY_SIMD > A->rows) ? A->rows : i + ICAN_IRAY_SIMD;
+        if (vec_end - i == ICAN_IRAY_SIMD) {
+            __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i]);
+            __m256 vec_o = ICAN_IRAY_SIMD_mul_ps(vec_a, vec_scalar);
+            ICAN_IRAY_SIMD_store_ps(&O->data[i], vec_o);
         }else {
             for (size_t k = i; k < vec_end; k++) {
                 A->data[k] = A->data[k] * scalar;
@@ -337,11 +337,11 @@ Iray1D *iray1d_scale(Iray1D *A, float scalar) {
 float iray1d_max(Iray1D *A) {
     float max_value = A->data[0];
     #pragma omp parallel for reduction(max:max_value)
-    for (size_t i = 0; i < A->rows; i+=8) {
-        size_t vec_end = (i + 8 > A->rows) ? A->rows : i + 8;
-        if (vec_end - i == 8) {
-            __m256 vec_a = _mm256_load_ps(&A->data[i]);
-            for (size_t k = 0; k < 8; k++) {
+    for (size_t i = 0; i < A->rows; i+=ICAN_IRAY_SIMD) {
+        size_t vec_end = (i + ICAN_IRAY_SIMD > A->rows) ? A->rows : i + ICAN_IRAY_SIMD;
+        if (vec_end - i == ICAN_IRAY_SIMD) {
+            __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i]);
+            for (size_t k = 0; k < ICAN_IRAY_SIMD; k++) {
                 max_value = fmaxf(max_value, ((float*)&vec_a)[k]);
             }
         }else {
@@ -356,11 +356,11 @@ float iray1d_max(Iray1D *A) {
 float iray1d_min(Iray1D *A) {
     float min_value = A->data[0];
     #pragma omp parallel for reduction(min:min_value)
-    for (size_t i = 0; i < A->rows; i+=8) {
-        size_t vec_end = (i + 8 > A->rows) ? A->rows : i + 8;
-        if (vec_end - i == 8) {
-            __m256 vec_a = _mm256_load_ps(&A->data[i]);
-            for (size_t k = 0; k < 8; k++) {
+    for (size_t i = 0; i < A->rows; i+=ICAN_IRAY_SIMD) {
+        size_t vec_end = (i + ICAN_IRAY_SIMD > A->rows) ? A->rows : i + ICAN_IRAY_SIMD;
+        if (vec_end - i == ICAN_IRAY_SIMD) {
+            __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i]);
+            for (size_t k = 0; k < ICAN_IRAY_SIMD; k++) {
                 min_value = fminf(min_value, ((float*)&vec_a)[k]);
             }
         }else {
@@ -377,17 +377,17 @@ Iray1D *iray1d_slice(Iray1D *A, int64 start, int64 end) {
     size_t j = 0;
     Iray1D *O = iray1d_alloc(new_size);
     #pragma omp parallel for
-    for (size_t i = start; i < end; i+=8) {
-        size_t vec_end = (i + 8 > A->rows) ? A->rows : i + 8;
-        if (vec_end - i == 8) {
-            __m256 vec_a = _mm256_load_ps(&A->data[i]);
-            _mm256_store_ps(&O->data[j], vec_a);
+    for (size_t i = start; i < end; i+=ICAN_IRAY_SIMD) {
+        size_t vec_end = (i + ICAN_IRAY_SIMD > A->rows) ? A->rows : i + ICAN_IRAY_SIMD;
+        if (vec_end - i == ICAN_IRAY_SIMD) {
+            __m256 vec_a = ICAN_IRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_IRAY_SIMD_store_ps(&O->data[j], vec_a);
         }else {
             for (size_t k = i; k < vec_end; k++, j++) {
                 O->data[j] = A->data[i];
             }
         }
-        j+=8;
+        j+=ICAN_IRAY_SIMD;
     }
     return O;
 }

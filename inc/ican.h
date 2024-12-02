@@ -34,12 +34,16 @@ typedef unsigned long long int int64; // 0-18446744073709551615
 
 #include "logger.h"
 
-#ifdef ICAN_USE_IRAY
-#include "iray.h"
-#endif // ICAN_USE_IRAY
+#ifdef ICAN_USE_ARRAY
+#include "data_structure/array.h"
+#endif // ICAN_USE_ARRAY
 
 #ifdef ICAN_USE_LINKED_LIST
 #include "data_structure/linked_list.h"
 #endif // !ICAN_USE_LINKED_LIST
+
+#ifdef ICAN_USE_KNN
+#include "machine_learning/supervised_learning/knn.h"
+#endif // !ICAN_USE_KNN
 
 #endif // !ICAN_H

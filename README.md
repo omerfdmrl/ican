@@ -36,6 +36,10 @@ Install library to local
 ### Roadmap
 
 - [ ] Data Structures
+  - [ ] Array
+    - [x] 1D Array
+    - [x] 2D Array
+    - [ ] 3D Array
   - [ ] Linked List
     - [x] Single linked list
     - [ ] Double linked list
@@ -65,7 +69,7 @@ Install library to local
       - [ ] Double hashing
 - [ ] Machine Learning
   - [ ] Supervised learning
-    - [ ] KNN
+    - [x] KNN
     - [ ] SVM
     - [ ] Linear regression
     - [ ] Logistic regression

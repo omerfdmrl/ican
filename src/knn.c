@@ -14,7 +14,7 @@ float most_frequent_label(Array1D *labels) {
     }
 
     int label_range = max_label - min_label + 1;
-    int *freq = (int*)malloc(sizeof(int) * label_range);
+    int *freq = (int*)ICAN_MALLOC(sizeof(int) * label_range);
     for (int i = 0; i < label_range; i++) {
         freq[i] = 0;
     }
@@ -90,5 +90,6 @@ float knn_predict(KNN *knn, Array1D *x) {
     array2d_free(distances);
     array2d_free(labels);
     float msl = most_frequent_label(labels1d);
+    array1d_free(labels1d);
     return msl;
 }

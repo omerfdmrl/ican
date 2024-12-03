@@ -31,6 +31,7 @@ typedef struct s_array2d Array2D;
     #define ICAN_ARRAY_SIMD_mul_ps _mm512_mul_ps
     #define ICAN_ARRAY_SIMD_hadd_ps _mm512_hadd_ps
     #define ICAN_ARRAY_SIMD_set1_ps _mm512_set1_ps
+    #define ICAN_ARRAY_SIMD_setzero_ps _mm512_setzero_ps
 #elif ICAN_ARRAY_SIMD == 32
     #define ICAN_ARRAY_SIMD_align 32
     #define ICAN_ARRAY_SIMD_load_ps _mm256_load_ps
@@ -40,6 +41,7 @@ typedef struct s_array2d Array2D;
     #define ICAN_ARRAY_SIMD_mul_ps _mm256_mul_ps
     #define ICAN_ARRAY_SIMD_hadd_ps _mm256_hadd_ps
     #define ICAN_ARRAY_SIMD_set1_ps _mm256_set1_ps
+    #define ICAN_ARRAY_SIMD_setzero_ps _mm256_setzero_ps
 #elif ICAN_ARRAY_SIMD == 16
     #define ICAN_ARRAY_SIMD_align 64
     #define ICAN_ARRAY_SIMD_load_ps _mm512_load_ps
@@ -49,6 +51,7 @@ typedef struct s_array2d Array2D;
     #define ICAN_ARRAY_SIMD_mul_ps _mm512_mul_ps
     #define ICAN_ARRAY_SIMD_hadd_ps _mm512_hadd_ps
     #define ICAN_ARRAY_SIMD_set1_ps _mm512_set1_ps
+    #define ICAN_ARRAY_SIMD_setzero_ps _mm512_setzero_ps
 #elif ICAN_ARRAY_SIMD == 8
     #define ICAN_ARRAY_SIMD_align 32
     #define ICAN_ARRAY_SIMD_load_ps _mm256_load_ps
@@ -58,6 +61,7 @@ typedef struct s_array2d Array2D;
     #define ICAN_ARRAY_SIMD_mul_ps _mm256_mul_ps
     #define ICAN_ARRAY_SIMD_hadd_ps _mm256_hadd_ps
     #define ICAN_ARRAY_SIMD_set1_ps _mm256_set1_ps
+    #define ICAN_ARRAY_SIMD_setzero_ps _mm256_setzero_ps
 #elif ICAN_ARRAY_SIMD == 4
     #define ICAN_ARRAY_SIMD_align 16
     #define ICAN_ARRAY_SIMD_load_ps _mm128_load_ps
@@ -67,6 +71,7 @@ typedef struct s_array2d Array2D;
     #define ICAN_ARRAY_SIMD_mul_ps _mm128_mul_ps
     #define ICAN_ARRAY_SIMD_hadd_ps _mm128_hadd_ps
     #define ICAN_ARRAY_SIMD_set1_ps _mm128_set1_ps
+    #define ICAN_ARRAY_SIMD_setzero_ps _mm128_setzero_ps
 #endif
 
 Array2D *array2d_alloc(int64 rows, int64 cols);
@@ -93,6 +98,7 @@ Array1D *array1d_add(Array1D *A, Array1D *B);
 Array1D *array1d_sub(Array1D *A, Array1D *B);
 float array1d_sum(Array1D *A);
 Array1D *array1d_dot(Array1D *A, Array1D *B);
+float array1d_dot_scalar(Array1D *A, Array1D *B);
 void array1d_fill(Array1D *A, float data);
 Array1D *array1d_apply(Array1D *A, float (*func)(float));
 Array1D *array1d_sort(Array1D *A, int (*comp)(float, float));

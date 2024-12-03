@@ -46,4 +46,8 @@ typedef unsigned long long int int64; // 0-18446744073709551615
 #include "machine_learning/supervised_learning/knn.h"
 #endif // !ICAN_USE_KNN
 
+#ifdef ICAN_USE_SVM
+#include "machine_learning/supervised_learning/svm.h"
+#endif // !ICAN_USE_SVM
+
 #endif // !ICAN_H

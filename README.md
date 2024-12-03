@@ -70,7 +70,7 @@ Install library to local
 - [ ] Machine Learning
   - [ ] Supervised learning
     - [x] KNN
-    - [ ] SVM
+    - [x] SVM
     - [ ] Linear regression
     - [ ] Logistic regression
     - [ ] Decision tree
@@ -140,3 +140,9 @@ Install library to local
       - [ ] Tokenizer
       - [ ] Encoder
       - [ ] Decoder
+
+### TODO
+
+- [ ] Array
+  - [ ] Transpose: https://stackoverflow.com/questions/16737298/what-is-the-fastest-way-to-transpose-a-matrix-in-c
+  - [ ] Mul: https://en.wikipedia.org/wiki/Strassen_algorithm

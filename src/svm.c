@@ -1,14 +1,12 @@
 #include "machine_learning/supervised_learning/svm.h"
 
-SVM *svm_alloc(Array2D *x, Array2D *y) {
-    SVM *svm = (SVM *)malloc(sizeof(SVM));
-    svm->x = x;
-    svm->y = y;
+SVM *svm_alloc() {
+    SVM *svm = (SVM *)ICAN_MALLOC(sizeof(SVM));
     svm->lr = 1e-3;
     svm->c = 1e-1;
     svm->b = 0;
-    svm->w = array1d_alloc(x->cols);
-    array1d_fill(svm->w, 0);
+    svm->w = NULL;
+    array1d_fill_inplace(svm->w, 0);
     return svm;
 }
 
@@ -27,24 +25,30 @@ int svm_predict(SVM *svm, Array1D *x) {
     return predicted > 0 ? 1 : -1;
 }
 
-void svm_fit(SVM *svm, int32 epochs) {
+void svm_fit(SVM *svm, Array2D *x, Array2D *y, int32 epochs) {
+    if (svm->w == NULL) {
+        svm->w = array1d_alloc(x->cols);
+    }
     for (size_t i = 0; i < epochs; i++) {
-        for (size_t j = 0; j < svm->x->rows; j++) {
-            Array1D *x = array1d_from(&svm->x->data[j], svm->x->cols);
-            float y = svm->y->data[j];
-            bool condition = svm->y->data[j] * _predict(svm, x) >= 1;
+        for (size_t j = 0; j < x->rows; j++) {
+            Array1D *xi = array1d_from(&x->data[j], x->cols);
+            float yi = y->data[j];
+            bool condition = y->data[j] * _predict(svm, xi) >= 1;
             if (condition) {
-                for (size_t k = 0; k < svm->w->rows; k++) {
-                    svm->w->data[k] -= svm->lr * (2 * svm->c * svm->w->data[k]);
-                }
+                Array1D *dw = array1d_mul_scalar(svm->w, 2 * svm->c);
+                array1d_mul_scalar(dw, svm->lr);
+                array1d_sub_inplace(svm->w, dw);
             }else {
-                for (size_t k = 0; k < svm->w->rows; k++) {
-                    svm->w->data[k] -= svm->lr * (2 * svm->c * svm->w->data[k] - y * x->data[k]);
-                }
-                svm->b -= svm->lr * y;
+                Array1D *dw = array1d_mul_scalar(svm->w, 2 * svm->c);
+                Array1D *yx = array1d_mul_scalar(xi, yi);
+                array1d_sub_inplace(dw, yx);
+                array1d_mul_scalar_inplace(dw, svm->lr);
+                array1d_sub_inplace(svm->w, dw);
+                array1d_free(dw);
+                array1d_free(yx);
+                svm->b -= svm->lr * yi;
             }
-            array1d_free(x);
+            array1d_free(xi);
         }
     }
-    
 }

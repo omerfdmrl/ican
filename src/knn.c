@@ -55,11 +55,9 @@ float pow2(float x) {
 
 float euclidean_distance(float *x, Array1D *y, int64 cols) {
     Array1D *x_data = array1d_from(x, cols);
-    Array1D *diff = array1d_sub(x_data, y);
-    Array1D *powed = array1d_apply(diff, pow2);
-    float sum = array1d_sum(powed);
-    array1d_free(diff);
-    array1d_free(powed);
+    array1d_sub_inplace(x_data, y);
+    array1d_apply_inplace(x_data, pow2);
+    float sum = array1d_sum(x_data);
     array1d_free(x_data);
     return sqrtf(sum);
 }
@@ -78,9 +76,8 @@ Array2D *calculate_distances(Array2D *dataset, Array2D *target, Array1D *x) {
             distances->data[i * distances->cols + 1 + t] = target->data[i * target->cols + t];
         }
     }
-    Array2D *output = array2d_sort(distances, sort);
-    array2d_free(distances);
-    return output;
+    array2d_sort_inplace(distances, sort);
+    return distances;
 }
 
 float knn_predict(KNN *knn, Array1D *x) {

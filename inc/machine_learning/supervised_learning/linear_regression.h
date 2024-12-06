@@ -16,6 +16,7 @@ typedef struct s_linear_regression LinearRegression;
 
 LinearRegression *linear_regression_alloc();
 void linear_regression_free(LinearRegression *lr);
+float linear_regression_cost(LinearRegression *lr, Array2D *x, Array2D *y);
 float linear_regression_predict(LinearRegression *lr, Array1D *x);
 void linear_regression_fit(LinearRegression *lr, Array2D *x, Array2D *y, int32 epochs);
 

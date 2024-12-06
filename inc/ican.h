@@ -54,4 +54,8 @@ typedef unsigned long long int int64; // 0-18446744073709551615
 #include "machine_learning/supervised_learning/linear_regression.h"
 #endif // !ICAN_USE_LINEAR_REGRESSION
 
+#ifdef ICAN_USE_LOGISTIC_REGRESSION
+#include "machine_learning/supervised_learning/logistic_regression.h"
+#endif // !ICAN_USE_LOGISTIC_REGRESSION
+
 #endif // !ICAN_H

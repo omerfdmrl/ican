@@ -71,7 +71,7 @@ Install library to local
   - [ ] Supervised learning
     - [x] KNN
     - [x] SVM
-    - [ ] Linear regression
+    - [x] Linear regression
     - [ ] Logistic regression
     - [ ] Decision tree
     - [ ] Random forest

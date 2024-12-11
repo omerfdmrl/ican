@@ -29,9 +29,9 @@ Array2D *array2d_add(Array2D *A, Array2D *B) {
         for (size_t j = 0; j < A->cols; j += ICAN_ARRAY_SIMD) {
             size_t vec_end = (j + ICAN_ARRAY_SIMD > A->cols) ? A->cols : j + ICAN_ARRAY_SIMD;
             if (vec_end - j == ICAN_ARRAY_SIMD) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
-                __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i * B->cols + j]);
-                __m256 vec_sum = ICAN_ARRAY_SIMD_add_ps(vec_a, vec_b);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i * B->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_sum = ICAN_ARRAY_SIMD_add_ps(vec_a, vec_b);
                 ICAN_ARRAY_SIMD_store_ps(&O->data[i * O->cols + j], vec_sum);
             } else {
                 for (size_t k = j; k < vec_end; k++) {
@@ -52,9 +52,9 @@ void array2d_add_inplace(Array2D *A, Array2D *B) {
         for (size_t j = 0; j < A->cols; j += ICAN_ARRAY_SIMD) {
             size_t vec_end = (j + ICAN_ARRAY_SIMD > A->cols) ? A->cols : j + ICAN_ARRAY_SIMD;
             if (vec_end - j == ICAN_ARRAY_SIMD) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
-                __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i * B->cols + j]);
-                __m256 vec_sum = ICAN_ARRAY_SIMD_add_ps(vec_a, vec_b);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i * B->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_sum = ICAN_ARRAY_SIMD_add_ps(vec_a, vec_b);
                 ICAN_ARRAY_SIMD_store_ps(&A->data[i * A->cols + j], vec_sum);
             } else {
                 for (size_t k = j; k < vec_end; k++) {
@@ -75,9 +75,9 @@ Array2D *array2d_sub(Array2D *A, Array2D *B) {
         for (size_t j = 0; j < A->cols; j += ICAN_ARRAY_SIMD) {
             size_t vec_end = (j + ICAN_ARRAY_SIMD > A->cols) ? A->cols : j + ICAN_ARRAY_SIMD;
             if (vec_end - j == ICAN_ARRAY_SIMD) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
-                __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i * B->cols + j]);
-                __m256 vec_sum = ICAN_ARRAY_SIMD_sub_ps(vec_a, vec_b);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i * B->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_sum = ICAN_ARRAY_SIMD_sub_ps(vec_a, vec_b);
                 ICAN_ARRAY_SIMD_store_ps(&O->data[i * O->cols + j], vec_sum);
             } else {
                 for (size_t k = j; k < vec_end; k++) {
@@ -98,9 +98,9 @@ void array2d_sub_inplace(Array2D *A, Array2D *B) {
         for (size_t j = 0; j < A->cols; j += ICAN_ARRAY_SIMD) {
             size_t vec_end = (j + ICAN_ARRAY_SIMD > A->cols) ? A->cols : j + ICAN_ARRAY_SIMD;
             if (vec_end - j == ICAN_ARRAY_SIMD) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
-                __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i * B->cols + j]);
-                __m256 vec_sum = ICAN_ARRAY_SIMD_sub_ps(vec_a, vec_b);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i * B->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_sum = ICAN_ARRAY_SIMD_sub_ps(vec_a, vec_b);
                 ICAN_ARRAY_SIMD_store_ps(&A->data[i * A->cols + j], vec_sum);
             } else {
                 for (size_t k = j; k < vec_end; k++) {
@@ -122,10 +122,10 @@ Array2D *array2d_dot(Array2D *A, Array2D *B) {
             for (size_t k = 0; k < A->cols; k+=ICAN_ARRAY_SIMD) {
                 size_t vec_end = (k + ICAN_ARRAY_SIMD > A->cols) ? A->cols : k + ICAN_ARRAY_SIMD;
                 if (vec_end - k == ICAN_ARRAY_SIMD) {
-                    __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + k]);
-                    __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[k * B->cols + j]);
-                    __m256 vec_p = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
-                    __m256 vec_s = ICAN_ARRAY_SIMD_hadd_ps(vec_p, vec_p);
+                    ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + k]);
+                    ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[k * B->cols + j]);
+                    ICAN_ARRAY_SIMD_type vec_p = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
+                    ICAN_ARRAY_SIMD_type vec_s = ICAN_ARRAY_SIMD_hadd_ps(vec_p, vec_p);
                     vec_s = ICAN_ARRAY_SIMD_hadd_ps(vec_s, vec_s);
                     float result[ICAN_ARRAY_SIMD];
                     ICAN_ARRAY_SIMD_store_ps(result, vec_s);
@@ -152,10 +152,10 @@ void array2d_dot_inplace(Array2D *A, Array2D *B) {
             for (size_t k = 0; k < A->cols; k+=ICAN_ARRAY_SIMD) {
                 size_t vec_end = (k + ICAN_ARRAY_SIMD > A->cols) ? A->cols : k + ICAN_ARRAY_SIMD;
                 if (vec_end - k == ICAN_ARRAY_SIMD) {
-                    __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + k]);
-                    __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[k * B->cols + j]);
-                    __m256 vec_p = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
-                    __m256 vec_s = ICAN_ARRAY_SIMD_hadd_ps(vec_p, vec_p);
+                    ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + k]);
+                    ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[k * B->cols + j]);
+                    ICAN_ARRAY_SIMD_type vec_p = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
+                    ICAN_ARRAY_SIMD_type vec_s = ICAN_ARRAY_SIMD_hadd_ps(vec_p, vec_p);
                     vec_s = ICAN_ARRAY_SIMD_hadd_ps(vec_s, vec_s);
                     float result[ICAN_ARRAY_SIMD];
                     ICAN_ARRAY_SIMD_store_ps(result, vec_s);
@@ -170,6 +170,37 @@ void array2d_dot_inplace(Array2D *A, Array2D *B) {
     }
 }
 
+Array1D *array2d_dot_array1d_sum(Array2D *A, Array1D *B) {
+    ASSERT(A->rows == B->rows);
+    Array1D *O = array1d_alloc(A->cols);
+
+    #pragma omp parallel for
+    for (size_t i = 0; i < A->cols; i++) {
+        float sum = 0.0f;
+        for (size_t j = 0; j < A->rows; j+=ICAN_ARRAY_SIMD) {
+            size_t vec_end = (j + ICAN_ARRAY_SIMD > A->cols) ? A->rows : j + ICAN_ARRAY_SIMD;
+            if (vec_end - j == ICAN_ARRAY_SIMD) {
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[j * A->cols + i]);
+                ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[j]);
+                ICAN_ARRAY_SIMD_type vec_product = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
+
+                vec_product = ICAN_ARRAY_SIMD_hadd_ps(vec_product, vec_product);
+                vec_product = ICAN_ARRAY_SIMD_hadd_ps(vec_product, vec_product);
+
+                float result[ICAN_ARRAY_SIMD];
+                ICAN_ARRAY_SIMD_store_ps(result, vec_product);
+                sum += result[0] + result[4];
+            }else {
+                for (size_t k = j; k < vec_end; k++) {
+                    sum += A->data[k * A->cols + i] * B->data[j];
+                }
+            }
+        }
+        O->data[i] = sum;
+    }
+    return O;
+}
+
 Array2D *array2d_apply(Array2D *A, float (*func)(float)) {
     Array2D *O = array2d_alloc(A->rows, A->cols);
     
@@ -178,7 +209,7 @@ Array2D *array2d_apply(Array2D *A, float (*func)(float)) {
         for (size_t j = 0; j < A->cols; j += ICAN_ARRAY_SIMD) {
             size_t vec_end = (j + ICAN_ARRAY_SIMD > A->cols) ? A->cols : j + ICAN_ARRAY_SIMD;
             if (vec_end - j == ICAN_ARRAY_SIMD) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
                 for (size_t k = 0; k < ICAN_ARRAY_SIMD; k++) {
                     float val = func(((float*)&vec_a)[k]);
                     ((float*)&vec_a)[k] = val;
@@ -200,7 +231,7 @@ void array2d_apply_inplace(Array2D *A, float (*func)(float)) {
         for (size_t j = 0; j < A->cols; j += ICAN_ARRAY_SIMD) {
             size_t vec_end = (j + ICAN_ARRAY_SIMD > A->cols) ? A->cols : j + ICAN_ARRAY_SIMD;
             if (vec_end - j == ICAN_ARRAY_SIMD) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
                 for (size_t k = 0; k < ICAN_ARRAY_SIMD; k++) {
                     float val = func(((float*)&vec_a)[k]);
                     ((float*)&vec_a)[k] = val;
@@ -251,7 +282,7 @@ void array2d_sort_inplace(Array2D *A, int (*comp)(float*, float*, int64)) {
 }
 
 Array2D *array2d_mul_scalar(Array2D *A, float scalar) {
-    __m256 vec_scalar = ICAN_ARRAY_SIMD_set1_ps(scalar);
+    ICAN_ARRAY_SIMD_type vec_scalar = ICAN_ARRAY_SIMD_set1_ps(scalar);
     Array2D *O = array2d_alloc(A->rows, A->cols);
     
     #pragma omp parallel for
@@ -259,8 +290,8 @@ Array2D *array2d_mul_scalar(Array2D *A, float scalar) {
         for (size_t j = 0; j < A->cols; j += ICAN_ARRAY_SIMD) {
             size_t vec_end = (j + ICAN_ARRAY_SIMD > A->cols) ? A->cols : j + ICAN_ARRAY_SIMD;
             if (vec_end - j == ICAN_ARRAY_SIMD) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
-                __m256 vec_o = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_scalar);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_o = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_scalar);
                 ICAN_ARRAY_SIMD_store_ps(&O->data[i * O->cols + j], vec_o);
             } else {
                 for (size_t k = j; k < vec_end; k++) {
@@ -273,15 +304,15 @@ Array2D *array2d_mul_scalar(Array2D *A, float scalar) {
 }
 
 void array2d_mul_scalar_inplace(Array2D *A, float scalar) {
-    __m256 vec_scalar = ICAN_ARRAY_SIMD_set1_ps(scalar);
+    ICAN_ARRAY_SIMD_type vec_scalar = ICAN_ARRAY_SIMD_set1_ps(scalar);
     
     #pragma omp parallel for
     for (size_t i = 0; i < A->rows; i++) {
         for (size_t j = 0; j < A->cols; j += ICAN_ARRAY_SIMD) {
             size_t vec_end = (j + ICAN_ARRAY_SIMD > A->cols) ? A->cols : j + ICAN_ARRAY_SIMD;
             if (vec_end - j == ICAN_ARRAY_SIMD) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
-                __m256 vec_o = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_scalar);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_o = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_scalar);
                 ICAN_ARRAY_SIMD_store_ps(&A->data[i * A->cols + j], vec_o);
             } else {
                 for (size_t k = j; k < vec_end; k++) {
@@ -293,7 +324,7 @@ void array2d_mul_scalar_inplace(Array2D *A, float scalar) {
 }
 
 Array2D *array2d_fill(Array2D *A, float data) {
-    __m256 vec_data = ICAN_ARRAY_SIMD_set1_ps(data);
+    ICAN_ARRAY_SIMD_type vec_data = ICAN_ARRAY_SIMD_set1_ps(data);
     Array2D *O = array2d_alloc(A->rows, A->cols);
 
     #pragma omp parallel for
@@ -313,7 +344,7 @@ Array2D *array2d_fill(Array2D *A, float data) {
 }
 
 void array2d_fill_inplace(Array2D *A, float data) {
-    __m256 vec_data = ICAN_ARRAY_SIMD_set1_ps(data);
+    ICAN_ARRAY_SIMD_type vec_data = ICAN_ARRAY_SIMD_set1_ps(data);
     
     #pragma omp parallel for
     for (size_t i = 0; i < A->rows; i++) {
@@ -337,7 +368,7 @@ float array2d_max(Array2D *A) {
         for (size_t j = 0; j < A->cols; j += ICAN_ARRAY_SIMD) {
             size_t vec_end = (j + ICAN_ARRAY_SIMD > A->cols) ? A->cols : j + ICAN_ARRAY_SIMD;
             if (vec_end - j == ICAN_ARRAY_SIMD) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
                 for (size_t k = 0; k < ICAN_ARRAY_SIMD; k++) {
                     max_value = fmaxf(max_value, ((float*)&vec_a)[k]);
                 }
@@ -358,7 +389,7 @@ float array2d_min(Array2D *A) {
         for (size_t j = 0; j < A->cols; j += ICAN_ARRAY_SIMD) {
             size_t vec_end = (j + ICAN_ARRAY_SIMD > A->cols) ? A->cols : j + ICAN_ARRAY_SIMD;
             if (vec_end - j == ICAN_ARRAY_SIMD) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i * A->cols + j]);
                 for (size_t k = 0; k < ICAN_ARRAY_SIMD; k++) {
                     min_value = fminf(min_value, ((float*)&vec_a)[k]);
                 }
@@ -459,9 +490,9 @@ Array1D *array1d_add(Array1D *A, Array1D *B) {
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-            __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
-            __m256 vec_sum = ICAN_ARRAY_SIMD_add_ps(vec_a, vec_b);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
+            ICAN_ARRAY_SIMD_type vec_sum = ICAN_ARRAY_SIMD_add_ps(vec_a, vec_b);
             ICAN_ARRAY_SIMD_store_ps(&O->data[i], vec_sum);
         } else {
             for (size_t k = i; k < vec_end; k++) {
@@ -479,9 +510,9 @@ void array1d_add_inplace(Array1D *A, Array1D *B) {
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-            __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
-            __m256 vec_sub = ICAN_ARRAY_SIMD_add_ps(vec_a, vec_b);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
+            ICAN_ARRAY_SIMD_type vec_sub = ICAN_ARRAY_SIMD_add_ps(vec_a, vec_b);
             ICAN_ARRAY_SIMD_store_ps(&A->data[i], vec_sub);
         } else {
             for (size_t k = i; k < vec_end; k++) {
@@ -493,13 +524,13 @@ void array1d_add_inplace(Array1D *A, Array1D *B) {
 
 Array1D *array1d_add_scalar(Array1D *A, float data) {
     Array1D *O = array1d_alloc(A->rows);
-    __m256 vec_b = ICAN_ARRAY_SIMD_set1_ps(data);
+    ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_set1_ps(data);
     #pragma omp parallel for
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-            __m256 vec_sub = ICAN_ARRAY_SIMD_add_ps(vec_a, vec_b);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_sub = ICAN_ARRAY_SIMD_add_ps(vec_a, vec_b);
             ICAN_ARRAY_SIMD_store_ps(&O->data[i], vec_sub);
         } else {
             for (size_t k = i; k < vec_end; k++) {
@@ -511,13 +542,13 @@ Array1D *array1d_add_scalar(Array1D *A, float data) {
 }
 
 void array1d_add_scalar_inplace(Array1D *A, float data) {
-    __m256 vec_b = ICAN_ARRAY_SIMD_set1_ps(data);
+    ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_set1_ps(data);
     #pragma omp parallel for
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-            __m256 vec_sub = ICAN_ARRAY_SIMD_add_ps(vec_a, vec_b);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_sub = ICAN_ARRAY_SIMD_add_ps(vec_a, vec_b);
             ICAN_ARRAY_SIMD_store_ps(&A->data[i], vec_sub);
         } else {
             for (size_t k = i; k < vec_end; k++) {
@@ -535,9 +566,9 @@ Array1D *array1d_sub(Array1D *A, Array1D *B) {
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-            __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
-            __m256 vec_sub = ICAN_ARRAY_SIMD_sub_ps(vec_a, vec_b);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
+            ICAN_ARRAY_SIMD_type vec_sub = ICAN_ARRAY_SIMD_sub_ps(vec_a, vec_b);
             ICAN_ARRAY_SIMD_store_ps(&O->data[i], vec_sub);
         } else {
             for (size_t k = i; k < vec_end; k++) {
@@ -555,9 +586,9 @@ void array1d_sub_inplace(Array1D *A, Array1D *B) {
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-            __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
-            __m256 vec_sub = ICAN_ARRAY_SIMD_sub_ps(vec_a, vec_b);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
+            ICAN_ARRAY_SIMD_type vec_sub = ICAN_ARRAY_SIMD_sub_ps(vec_a, vec_b);
             ICAN_ARRAY_SIMD_store_ps(&A->data[i], vec_sub);
         } else {
             for (size_t k = i; k < vec_end; k++) {
@@ -569,13 +600,13 @@ void array1d_sub_inplace(Array1D *A, Array1D *B) {
 
 Array1D *array1d_sub_scalar(Array1D *A, float data) {
     Array1D *O = array1d_alloc(A->rows);
-    __m256 vec_b = ICAN_ARRAY_SIMD_set1_ps(data);
+    ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_set1_ps(data);
     #pragma omp parallel for
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-            __m256 vec_sub = ICAN_ARRAY_SIMD_sub_ps(vec_a, vec_b);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_sub = ICAN_ARRAY_SIMD_sub_ps(vec_a, vec_b);
             ICAN_ARRAY_SIMD_store_ps(&O->data[i], vec_sub);
         } else {
             for (size_t k = i; k < vec_end; k++) {
@@ -587,13 +618,13 @@ Array1D *array1d_sub_scalar(Array1D *A, float data) {
 }
 
 void array1d_sub_scalar_inplace(Array1D *A, float data) {
-    __m256 vec_b = ICAN_ARRAY_SIMD_set1_ps(data);
+    ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_set1_ps(data);
     #pragma omp parallel for
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-            __m256 vec_sub = ICAN_ARRAY_SIMD_sub_ps(vec_a, vec_b);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_sub = ICAN_ARRAY_SIMD_sub_ps(vec_a, vec_b);
             ICAN_ARRAY_SIMD_store_ps(&A->data[i], vec_sub);
         } else {
             for (size_t k = i; k < vec_end; k++) {
@@ -608,13 +639,13 @@ float array1d_sum(Array1D *A) {
 
     #pragma omp parallel
     {
-        __m256 vec_sum = ICAN_ARRAY_SIMD_setzero_ps();
+        ICAN_ARRAY_SIMD_type vec_sum = ICAN_ARRAY_SIMD_setzero_ps();
         float thread_sum = 0.0f;
 
         #pragma omp for
         for (size_t i = 0; i < A->rows; i += 8) {
             if (i + 8 <= A->rows) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
                 vec_sum = ICAN_ARRAY_SIMD_add_ps(vec_sum, vec_a);
             } else {
                 for (size_t j = i; j < A->rows; ++j) {
@@ -643,9 +674,9 @@ Array1D *array1d_dot(Array1D *A, Array1D *B) {
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-            __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
-            __m256 vec_p = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
+            ICAN_ARRAY_SIMD_type vec_p = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
             ICAN_ARRAY_SIMD_store_ps(&O->data[i], vec_p);
         } else {
             for (size_t k = i; k < vec_end; k++) {
@@ -663,9 +694,9 @@ void array1d_dot_inplace(Array1D *A, Array1D *B) {
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-            __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
-            __m256 vec_p = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
+            ICAN_ARRAY_SIMD_type vec_p = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
             ICAN_ARRAY_SIMD_store_ps(&A->data[i], vec_p);
         } else {
             for (size_t k = i; k < vec_end; k++) {
@@ -681,16 +712,16 @@ float array1d_dot_sum(Array1D *A, Array1D *B) {
 
     #pragma omp parallel
     {
-        __m256 vec_sum = ICAN_ARRAY_SIMD_setzero_ps();
+        ICAN_ARRAY_SIMD_type vec_sum = ICAN_ARRAY_SIMD_setzero_ps();
         float partial_sum = 0.0f;
 
         #pragma omp for
         for (size_t i = 0; i < A->rows; i += ICAN_ARRAY_SIMD) {
             size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
             if (vec_end - i == ICAN_ARRAY_SIMD) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-                __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
-                __m256 vec_p = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+                ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
+                ICAN_ARRAY_SIMD_type vec_p = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
                 vec_sum = ICAN_ARRAY_SIMD_add_ps(vec_sum, vec_p);
             } else {
                 for (size_t j = i; j < vec_end; j++) {
@@ -718,16 +749,16 @@ float array1d_dot_scalar_sum(Array1D *A, Array1D *B) {
 
     #pragma omp parallel
     {
-        __m256 vec_sum = ICAN_ARRAY_SIMD_setzero_ps();
+        ICAN_ARRAY_SIMD_type vec_sum = ICAN_ARRAY_SIMD_setzero_ps();
         float partial_sum = 0.0f;
 
         #pragma omp for
         for (size_t i = 0; i < A->rows; i += ICAN_ARRAY_SIMD) {
             size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
             if (vec_end - i == ICAN_ARRAY_SIMD) {
-                __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-                __m256 vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
-                __m256 vec_p = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
+                ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+                ICAN_ARRAY_SIMD_type vec_b = ICAN_ARRAY_SIMD_load_ps(&B->data[i]);
+                ICAN_ARRAY_SIMD_type vec_p = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_b);
                 vec_sum = ICAN_ARRAY_SIMD_add_ps(vec_sum, vec_p);
             } else {
                 for (size_t j = i; j < A->rows; j++) {
@@ -749,6 +780,17 @@ float array1d_dot_scalar_sum(Array1D *A, Array1D *B) {
     return sum;
 }
 
+Array2D *array1d_outer_product(Array1D *A, Array1D *B) {
+    Array2D *O = array2d_alloc(A->rows, B->rows);
+    #pragma omp parallel for
+    for (size_t i = 0; i < A->rows; i++) {
+        for (size_t j = 0; j < B->rows; j++) {
+            O->data[i * O->cols + j] = A->data[i] * B->data[j];
+        }
+    }
+    return O;
+}
+
 Array1D *array1d_mul_scalar(Array1D *A, float scalar) {
     Array1D *result = array1d_alloc(A->rows);
 
@@ -756,9 +798,9 @@ Array1D *array1d_mul_scalar(Array1D *A, float scalar) {
     for (size_t i = 0; i < A->rows; i += ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-            __m256 vec_scalar = ICAN_ARRAY_SIMD_set1_ps(scalar);
-            __m256 vec_res = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_scalar);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_scalar = ICAN_ARRAY_SIMD_set1_ps(scalar);
+            ICAN_ARRAY_SIMD_type vec_res = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_scalar);
             ICAN_ARRAY_SIMD_store_ps(&result->data[i], vec_res);
         } else {
             for (size_t j = i; j < vec_end; j++) {
@@ -775,9 +817,9 @@ void array1d_mul_scalar_inplace(Array1D *A, float scalar) {
     for (size_t i = 0; i < A->rows; i += ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
-            __m256 vec_scalar = ICAN_ARRAY_SIMD_set1_ps(scalar);
-            __m256 vec_res = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_scalar);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_scalar = ICAN_ARRAY_SIMD_set1_ps(scalar);
+            ICAN_ARRAY_SIMD_type vec_res = ICAN_ARRAY_SIMD_mul_ps(vec_a, vec_scalar);
             ICAN_ARRAY_SIMD_store_ps(&A->data[i], vec_res);
         } else {
             for (size_t j = i; j < vec_end; j++) {
@@ -788,7 +830,7 @@ void array1d_mul_scalar_inplace(Array1D *A, float scalar) {
 }
 
 Array1D *array1d_fill(Array1D *A, float data) {
-    __m256 vec_data = ICAN_ARRAY_SIMD_set1_ps(data);
+    ICAN_ARRAY_SIMD_type vec_data = ICAN_ARRAY_SIMD_set1_ps(data);
     Array1D *O = array1d_alloc(A->rows);
 
     #pragma omp parallel for
@@ -806,7 +848,7 @@ Array1D *array1d_fill(Array1D *A, float data) {
 }
 
 void array1d_fill_inplace(Array1D *A, float data) {
-    __m256 vec_data = ICAN_ARRAY_SIMD_set1_ps(data);
+    ICAN_ARRAY_SIMD_type vec_data = ICAN_ARRAY_SIMD_set1_ps(data);
 
     #pragma omp parallel for
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
@@ -828,7 +870,7 @@ Array1D *array1d_apply(Array1D *A, float (*func)(float)) {
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
             for (size_t k = 0; k < ICAN_ARRAY_SIMD; k++) {
                 float val = func(((float*)&vec_a)[k]);
                 ((float*)&vec_a)[k] = val;
@@ -848,7 +890,7 @@ void array1d_apply_inplace(Array1D *A, float (*func)(float)) {
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
             for (size_t k = 0; k < ICAN_ARRAY_SIMD; k++) {
                 float val = func(((float*)&vec_a)[k]);
                 ((float*)&vec_a)[k] = val;
@@ -897,7 +939,7 @@ float array1d_max(Array1D *A) {
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
             for (size_t k = 0; k < ICAN_ARRAY_SIMD; k++) {
                 max_value = fmaxf(max_value, ((float*)&vec_a)[k]);
             }
@@ -916,7 +958,7 @@ float array1d_min(Array1D *A) {
     for (size_t i = 0; i < A->rows; i+=ICAN_ARRAY_SIMD) {
         size_t vec_end = (i + ICAN_ARRAY_SIMD > A->rows) ? A->rows : i + ICAN_ARRAY_SIMD;
         if (vec_end - i == ICAN_ARRAY_SIMD) {
-            __m256 vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
+            ICAN_ARRAY_SIMD_type vec_a = ICAN_ARRAY_SIMD_load_ps(&A->data[i]);
             for (size_t k = 0; k < ICAN_ARRAY_SIMD; k++) {
                 min_value = fminf(min_value, ((float*)&vec_a)[k]);
             }
